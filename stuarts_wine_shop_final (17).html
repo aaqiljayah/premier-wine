@@ -1,0 +1,2987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stuarts Premier Daily — Fine Wines | Stowmarket</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple:       #4c0743;
+    --purple-dark:  #35075A;
+    --purple-mid:   #6a1090;
+    --yellow:       #f5a800;
+    --yellow-light: #ffd54f;
+    --cream:        #faf8fc;
+    --pale:         #f3eef9;
+    --ink:          #1a0a2e;
+    --muted:        #6b5e80;
+    --border:       #e0d5ed;
+    --white:        #ffffff;
+    --red-accent:   #c0392b;
+  }
+
+  *, *::before, *::after { transition: background-color 0.25s, color 0.15s, border-color 0.25s; }
+
+  html { scroll-behavior: smooth; }
+
+  /* ── CART NAV BUTTON ── */
+  .cart-nav-btn {
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    color: #fff; border-radius: 100px;
+    padding: 0.42rem 1rem;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .cart-nav-btn:hover { background: var(--yellow); color: var(--purple-dark); border-color: var(--yellow); }
+  .cart-nav-count {
+    background: var(--yellow); color: var(--purple-dark);
+    border-radius: 100px; min-width: 18px; height: 18px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 700; padding: 0 4px;
+  }
+  .cart-nav-btn:hover .cart-nav-count { background: var(--purple); color: #fff; }
+
+  /* Cart hover tooltip */
+  .cart-nav-wrap {
+    position: relative; display: inline-flex;
+  }
+  .cart-tooltip {
+    position: absolute; top: calc(100% + 10px); right: 0;
+    background: var(--ink); color: #fff;
+    border-radius: 8px; padding: 0.7rem 0.9rem;
+    min-width: 200px; max-width: 280px;
+    box-shadow: 0 8px 24px rgba(26,10,46,0.35);
+    opacity: 0; pointer-events: none;
+    transform: translateY(-4px);
+    transition: opacity 0.18s, transform 0.18s;
+    z-index: 200;
+    font-size: 0.78rem;
+  }
+  .cart-tooltip::before {
+    content: '';
+    position: absolute; top: -6px; right: 16px;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid var(--ink);
+  }
+  .cart-nav-wrap:hover .cart-tooltip { opacity: 1; transform: translateY(0); pointer-events: none; }
+  .cart-tooltip-title {
+    font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--yellow); margin-bottom: 0.5rem;
+  }
+  .cart-tooltip-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.2rem 0; font-size: 0.75rem; color: rgba(255,255,255,0.85);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    gap: 0.5rem;
+  }
+  .cart-tooltip-item:last-child { border-bottom: none; }
+  .cart-tooltip-item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cart-tooltip-item-qty { color: var(--yellow); font-weight: 600; flex-shrink: 0; }
+  .cart-tooltip-empty {
+    color: rgba(255,255,255,0.45); font-size: 0.75rem;
+    text-align: center; padding: 0.3rem 0;
+  }
+  .cart-tooltip-total {
+    display: flex; justify-content: space-between;
+    font-weight: 600; font-size: 0.78rem;
+    margin-top: 0.5rem; padding-top: 0.4rem;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+  }
+
+  /* ── CART OVERLAY ── */
+  .cart-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    display: flex; justify-content: flex-end;
+    background: rgba(26,10,46,0.5);
+    backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .cart-overlay.open { opacity: 1; pointer-events: all; }
+
+  .cart-drawer {
+    background: var(--cream); width: 100%; max-width: 420px;
+    height: 100%; display: flex; flex-direction: column;
+    box-shadow: -8px 0 40px rgba(76,7,67,0.25);
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+  }
+  .cart-overlay.open .cart-drawer { transform: translateX(0); }
+
+  .cart-head {
+    background: var(--purple); color: #fff;
+    padding: 1.2rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cart-head-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 400;
+  }
+  .cart-close {
+    background: rgba(255,255,255,0.15); border: none;
+    color: #fff; width: 32px; height: 32px; border-radius: 50%;
+    font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .cart-close:hover { background: rgba(255,255,255,0.3); }
+
+  .cart-body { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+
+  .cart-empty {
+    text-align: center; padding: 3rem 1rem;
+    color: var(--muted); font-size: 0.85rem; line-height: 1.8;
+  }
+  .cart-empty-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+
+  .cart-item {
+    display: flex; gap: 1rem; align-items: center;
+    padding: 0.9rem 0; border-bottom: 1px solid var(--border);
+  }
+  .cart-item-img {
+    width: 50px; height: 50px; border-radius: 5px;
+    background: var(--pale); display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; flex-shrink: 0; overflow: hidden;
+  }
+  .cart-item-img img { width: 100%; height: 100%; object-fit: cover; }
+  .cart-item-info { flex: 1; }
+  .cart-item-name { font-size: 0.85rem; font-weight: 500; color: var(--ink); margin-bottom: 0.1rem; }
+  .cart-item-price { font-size: 0.78rem; color: var(--muted); }
+  .cart-item-qty {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-top: 0.35rem;
+  }
+  .qty-btn {
+    width: 22px; height: 22px; border: 1px solid var(--border);
+    border-radius: 4px; background: var(--white);
+    cursor: pointer; font-size: 0.8rem; color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .qty-btn:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .qty-num { font-size: 0.82rem; font-weight: 600; min-width: 16px; text-align: center; }
+  .cart-item-total { font-size: 0.9rem; font-weight: 600; color: var(--ink); white-space: nowrap; }
+
+  .cart-foot {
+    border-top: 2px solid var(--border);
+    padding: 1.2rem 1.5rem;
+    background: var(--white);
+  }
+  .cart-subtotal {
+    display: flex; justify-content: space-between;
+    font-size: 0.85rem; color: var(--muted); margin-bottom: 0.4rem;
+  }
+  .cart-total {
+    display: flex; justify-content: space-between;
+    font-size: 1.05rem; font-weight: 600; color: var(--ink);
+    margin-bottom: 1rem;
+  }
+  .btn-checkout {
+    width: 100%; background: var(--purple); color: #fff;
+    border: none; border-radius: 4px; padding: 0.9rem;
+    font-family: 'Jost', sans-serif; font-size: 0.78rem;
+    font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-checkout:hover { background: var(--purple-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(76,7,67,0.3); }
+  .btn-checkout:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+  .cod-note {
+    text-align: center; font-size: 0.7rem; color: var(--muted);
+    margin-top: 0.7rem; letter-spacing: 0.05em;
+  }
+
+  /* ── CHECKOUT OVERLAY ── */
+  .checkout-overlay {
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(26,10,46,0.6);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .checkout-overlay.open { opacity: 1; pointer-events: all; }
+
+  .checkout-modal {
+    background: var(--cream); border-radius: 8px;
+    width: 100%; max-width: 540px; max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(76,7,67,0.35);
+    transform: scale(0.95);
+    transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+  }
+  .checkout-overlay.open .checkout-modal { transform: scale(1); }
+
+  .co-head {
+    background: var(--purple); color: #fff;
+    padding: 1.4rem 1.8rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-radius: 8px 8px 0 0;
+  }
+  .co-head-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem; font-weight: 400;
+  }
+  .co-head-sub {
+    font-size: 0.68rem; letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.55); text-transform: uppercase;
+    margin-top: 0.2rem;
+  }
+  .co-close {
+    background: rgba(255,255,255,0.15); border: none;
+    color: #fff; width: 32px; height: 32px; border-radius: 50%;
+    font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s; flex-shrink: 0;
+  }
+  .co-close:hover { background: rgba(255,255,255,0.3); }
+
+  .co-body { padding: 1.8rem; }
+
+  .co-section {
+    font-size: 0.65rem; font-weight: 600;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--purple); margin: 1.4rem 0 0.9rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .co-section::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .co-section:first-child { margin-top: 0; }
+
+  .co-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-bottom: 0.9rem; }
+  .co-row.full { grid-template-columns: 1fr; }
+
+  .co-field { display: flex; flex-direction: column; gap: 0.35rem; }
+  .co-field label {
+    font-size: 0.65rem; font-weight: 500;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted);
+  }
+  .co-field input, .co-field textarea {
+    font-family: 'Jost', sans-serif; font-size: 0.85rem;
+    color: var(--ink); background: var(--white);
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 0.6rem 0.8rem; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s; width: 100%;
+  }
+  .co-field textarea { resize: vertical; min-height: 70px; }
+  .co-field input:focus, .co-field textarea:focus {
+    border-color: var(--purple-mid);
+    box-shadow: 0 0 0 3px rgba(106,16,144,0.1);
+  }
+
+  .co-order-summary {
+    background: var(--pale); border: 1px solid var(--border);
+    border-radius: 6px; padding: 1rem 1.1rem;
+    margin-bottom: 1.2rem;
+  }
+  .co-order-title {
+    font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 0.7rem;
+  }
+  .co-order-item {
+    display: flex; justify-content: space-between;
+    font-size: 0.8rem; color: var(--muted); padding: 0.2rem 0;
+  }
+  .co-order-item.total {
+    font-weight: 600; color: var(--ink);
+    border-top: 1px solid var(--border); margin-top: 0.4rem; padding-top: 0.5rem;
+  }
+
+  .age-check {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    background: var(--pale); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0.9rem; margin: 1rem 0;
+  }
+  .age-check input[type="checkbox"] {
+    width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px;
+    accent-color: var(--purple); cursor: pointer;
+  }
+  .age-check p { font-size: 0.76rem; color: var(--muted); line-height: 1.6; }
+  .age-check strong { color: var(--ink); }
+
+  .btn-place-order {
+    width: 100%; background: var(--purple); color: #fff;
+    border: none; border-radius: 4px; padding: 1rem;
+    font-family: 'Jost', sans-serif; font-size: 0.8rem;
+    font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  }
+  .btn-place-order:hover { background: var(--purple-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(76,7,67,0.35); }
+
+  /* ── FIELD VALIDATION ── */
+  .co-field input.field-error,
+  .co-field textarea.field-error {
+    border-color: var(--red-accent) !important;
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.12) !important;
+  }
+  .field-error-msg {
+    font-size: 0.63rem; color: var(--red-accent);
+    margin-top: 0.25rem; display: none;
+    font-weight: 500; letter-spacing: 0.04em;
+  }
+  .field-error-msg.visible { display: block; }
+
+  /* ── ORDER CONFIRMED ── */
+  .order-confirmed {
+    text-align: center; padding: 3rem 2rem;
+  }
+  .order-confirmed-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+  .order-confirmed h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 400;
+    color: var(--purple); margin-bottom: 0.7rem;
+  }
+  .order-confirmed p { font-size: 0.85rem; color: var(--muted); line-height: 1.8; max-width: 340px; margin: 0 auto 1.5rem; }
+  .order-confirmed .order-num {
+    background: var(--pale); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0.6rem 1.2rem;
+    display: inline-block; font-size: 0.8rem; font-weight: 600;
+    color: var(--purple); letter-spacing: 0.1em; margin-bottom: 1.5rem;
+  }
+  .btn-continue {
+    background: var(--yellow); color: var(--purple-dark);
+    border: none; border-radius: 4px; padding: 0.8rem 1.8rem;
+    font-family: 'Jost', sans-serif; font-size: 0.78rem;
+    font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-continue:hover { background: var(--yellow-light); }
+
+  /* also add to wine card */
+  .add-to-cart-btn {
+    display: block; width: 100%; margin-top: 0.8rem;
+    background: var(--purple); color: #fff;
+    border: none; border-radius: 3px; padding: 0.55rem;
+    font-family: 'Jost', sans-serif; font-size: 0.68rem;
+    font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s;
+  }
+  .add-to-cart-btn:hover { background: var(--purple-dark); }
+
+  .modal-add-cart-btn {
+    display: block; width: 100%; margin-top: 0.8rem;
+    background: transparent; color: var(--purple);
+    border: 2px solid var(--purple); border-radius: 4px; padding: 0.75rem;
+    font-family: 'Jost', sans-serif; font-size: 0.72rem;
+    font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s;
+  }
+  .modal-add-cart-btn:hover { background: var(--purple); color: #fff; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ANNOUNCEMENT BAR */
+  .announce-bar {
+    background: var(--yellow);
+    color: var(--purple-dark);
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0.55rem 1rem;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--purple);
+    padding: 0 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 80px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(76,7,67,0.4);
+  }
+
+  .logo-wrap { display: flex; align-items: center; gap: 1rem; }
+
+  .logo-badge {
+    width: 46px; height: 46px;
+    background: var(--yellow);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(245,168,0,0.3);
+  }
+
+  .logo-text { display: flex; flex-direction: column; line-height: 1; }
+
+  .logo-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.65rem; font-weight: 600;
+    color: #fff; letter-spacing: 0.03em;
+  }
+  .logo-main span { color: var(--yellow); }
+
+  .logo-sub {
+    font-size: 0.58rem; font-weight: 400;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.28em; text-transform: uppercase; margin-top: 3px;
+  }
+
+  nav { display: flex; gap: 1.8rem; align-items: center; }
+
+  nav a {
+    color: rgba(255,255,255,0.8); text-decoration: none;
+    font-size: 0.73rem; font-weight: 400;
+    letter-spacing: 0.14em; text-transform: uppercase; transition: color 0.2s;
+  }
+  nav a:hover { color: var(--yellow); }
+
+  nav a.nav-collection {
+    color: #fff;
+    position: relative;
+    padding-bottom: 2px;
+  }
+  nav a.nav-collection::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 2px; background: var(--yellow);
+    border-radius: 2px;
+  }
+  nav a.nav-collection:hover { color: var(--yellow); }
+
+  nav a.cta {
+    background: var(--yellow); color: var(--purple-dark);
+    padding: 0.5rem 1.2rem; border-radius: 3px;
+    font-weight: 600; letter-spacing: 0.1em; transition: all 0.2s;
+  }
+  nav a.cta:hover { background: var(--yellow-light); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,168,0,0.4); }
+
+  /* HERO */
+  .hero {
+    background: var(--purple); color: #fff;
+    padding: 5rem 3rem 4.5rem;
+    text-align: center; position: relative; overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+  }
+
+  .hero::after {
+    content: ''; position: absolute;
+    bottom: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, var(--yellow), #ff9800, var(--yellow));
+  }
+
+  .hero-stripe {
+    position: absolute; top: 0; bottom: 0; left: -5%; width: 30%;
+    background: linear-gradient(135deg, rgba(245,168,0,0.07) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-label {
+    display: inline-block; font-size: 0.63rem;
+    letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--yellow); font-weight: 600; margin-bottom: 1.4rem;
+    background: rgba(245,168,0,0.12);
+    border: 1px solid rgba(245,168,0,0.4);
+    padding: 0.4rem 1.2rem; border-radius: 100px;
+  }
+
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 300; line-height: 1.05; margin-bottom: 1.4rem;
+  }
+  .hero h1 em { font-style: italic; color: var(--yellow); }
+
+  .hero-divider {
+    width: 60px; height: 3px;
+    background: linear-gradient(90deg, var(--yellow), #ff9800);
+    margin: 0 auto 1.4rem; border-radius: 2px;
+  }
+
+  .hero p {
+    font-size: 0.92rem; font-weight: 300;
+    color: rgba(255,255,255,0.65);
+    max-width: 440px; margin: 0 auto 2.2rem; line-height: 1.9;
+  }
+
+  .hero-links { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  .hero-link-btn {
+    color: var(--purple-dark); background: var(--yellow);
+    font-size: 0.72rem; letter-spacing: 0.14em;
+    text-decoration: none; font-weight: 600;
+    padding: 0.6rem 1.4rem; border-radius: 100px;
+    text-transform: uppercase; transition: all 0.2s;
+    border: 2px solid var(--yellow);
+  }
+  .hero-link-btn:hover { background: transparent; color: var(--yellow); }
+  .hero-link-btn.outline {
+    background: transparent; color: rgba(255,255,255,0.8);
+    border-color: rgba(255,255,255,0.3);
+  }
+  .hero-link-btn.outline:hover { border-color: var(--yellow); color: var(--yellow); }
+
+  /* STATS BAR */
+  .stats-bar {
+    background: var(--white);
+    border-bottom: 3px solid var(--yellow);
+    display: flex; justify-content: center;
+  }
+
+  .stat {
+    padding: 1.2rem 2.5rem; text-align: center;
+    border-right: 1px solid var(--border);
+    flex: 1; max-width: 220px;
+  }
+  .stat:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 600;
+    color: var(--purple); line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.62rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted);
+    margin-top: 0.2rem; font-weight: 500;
+  }
+
+  /* SEARCH BAR */
+  .search-bar-wrap {
+    background: var(--white); padding: 0.8rem 3rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 80px; z-index: 91;
+    box-shadow: 0 2px 8px rgba(76,7,67,0.06);
+  }
+  .search-bar-inner {
+    display: flex; align-items: center; gap: 0.7rem;
+    background: var(--pale); border: 2px solid var(--border);
+    border-radius: 100px; padding: 0.5rem 1.2rem;
+    transition: border-color 0.2s;
+  }
+  .search-bar-inner:focus-within {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px rgba(76,7,67,0.08);
+  }
+  .search-icon { color: var(--muted); font-size: 0.9rem; flex-shrink: 0; }
+  .search-input {
+    border: none; background: transparent; outline: none;
+    font-family: 'Jost', sans-serif; font-size: 0.85rem;
+    color: var(--ink); width: 100%; font-weight: 400;
+  }
+  .search-input::placeholder { color: var(--muted); }
+  .search-clear {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 1rem; padding: 0;
+    display: none; line-height: 1;
+  }
+  .search-clear.visible { display: block; }
+  .search-clear:hover { color: var(--purple); }
+
+  /* TOOLBAR */
+  .toolbar {
+    padding: 1.1rem 3rem;
+    display: flex; align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; gap: 0.8rem;
+    background: var(--white); border-bottom: 1px solid var(--border);
+    position: sticky; top: 130px; z-index: 90;
+    box-shadow: 0 2px 8px rgba(76,7,67,0.06);
+  }
+
+  .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .filter-btn {
+    border: 2px solid var(--border); background: transparent;
+    padding: 0.42rem 1.1rem; border-radius: 100px;
+    font-family: 'Jost', sans-serif; font-size: 0.7rem;
+    font-weight: 500; letter-spacing: 0.13em; text-transform: uppercase;
+    cursor: pointer; color: var(--muted); transition: all 0.18s;
+  }
+  .filter-btn:hover { border-color: var(--purple); color: var(--purple); }
+  .filter-btn.active {
+    background: var(--purple); color: var(--yellow);
+    border-color: var(--purple);
+    box-shadow: 0 4px 12px rgba(76,7,67,0.25);
+  }
+
+  /* SORT */
+  .sort-wrapper { position: relative; flex-shrink: 0; }
+
+  .sort-btn {
+    display: flex; align-items: center; gap: 0.5rem;
+    border: 2px solid var(--purple); background: transparent;
+    padding: 0.42rem 1.1rem; border-radius: 100px;
+    font-family: 'Jost', sans-serif; font-size: 0.7rem;
+    font-weight: 600; letter-spacing: 0.1em;
+    cursor: pointer; color: var(--purple);
+    transition: all 0.18s; white-space: nowrap;
+  }
+  .sort-btn:hover, .sort-btn.open { background: var(--pale); }
+  .sort-btn .chevron { font-size: 0.55rem; transition: transform 0.2s; }
+  .sort-btn.open .chevron { transform: rotate(180deg); }
+
+  .sort-dropdown {
+    display: none; position: absolute;
+    top: calc(100% + 8px); right: 0;
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(76,7,67,0.18);
+    min-width: 190px; z-index: 50; overflow: hidden;
+  }
+  .sort-dropdown.open { display: block; animation: dropFade 0.15s ease; }
+  @keyframes dropFade { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+
+  .sort-label {
+    padding: 0.7rem 1.1rem 0.4rem; font-size: 0.58rem;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border);
+  }
+
+  .sort-option {
+    display: block; width: 100%; padding: 0.65rem 1.1rem;
+    font-family: 'Jost', sans-serif; font-size: 0.82rem;
+    background: none; border: none; text-align: left;
+    cursor: pointer; color: var(--ink); transition: background 0.12s;
+  }
+  .sort-option:hover { background: var(--pale); }
+  .sort-option.active { background: var(--purple); color: var(--yellow); font-weight: 600; }
+
+  /* GRID */
+  .shop-section { padding: 2.5rem 3rem 1rem; }
+
+  .section-heading {
+    font-size: 0.66rem; letter-spacing: 0.35em;
+    text-transform: uppercase; color: var(--purple);
+    font-weight: 700; margin-bottom: 1.8rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .section-heading::after { content:''; flex:1; height:2px; background: linear-gradient(90deg, var(--yellow), transparent); }
+
+  .wine-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 1.5px;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 4px; overflow: hidden;
+  }
+
+  /* WINE CARD */
+  .wine-card {
+    background: var(--white); cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex; flex-direction: column;
+    border-right: 1.5px solid var(--border);
+    border-bottom: 1.5px solid var(--border);
+  }
+  .wine-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(76,7,67,0.18);
+    z-index: 2; position: relative; border-color: transparent;
+  }
+
+  .wine-card-img {
+    height: 230px; display: flex;
+    align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .wine-card-img img {
+    width: 100%; height: 100%; object-fit: contain;
+    padding: 16px 12px; transition: transform 0.35s ease;
+    mix-blend-mode: multiply;
+  }
+  .wine-card:hover .wine-card-img img { transform: scale(1.08) translateY(-4px); }
+
+  .wine-card-img .emoji-fallback {
+    font-size: 5rem; display: flex;
+    align-items: center; justify-content: center;
+    width: 100%; height: 100%;
+  }
+
+  .wine-badge {
+    position: absolute; top: 10px; left: 10px;
+    font-size: 0.56rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 100px; z-index: 1;
+  }
+
+  .sale-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--red-accent); color: #fff;
+    font-size: 0.56rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 100px; z-index: 1;
+  }
+
+  .badge-Red       { background: var(--purple); color: var(--yellow); }
+  .badge-White     { background: var(--yellow); color: var(--purple-dark); }
+  .badge-Rosé      { background: #c85480; color: #fff; }
+  .badge-Sparkling { background: #1c3a5c; color: #a8d0f0; }
+  .badge-Fortified { background: #4a2800; color: var(--yellow); }
+
+  .bg-Red       { background: linear-gradient(160deg, #f5effe 60%, #ede0ff); }
+  .bg-White     { background: linear-gradient(160deg, #fdfcf0 60%, #faf5d8); }
+  .bg-Rosé      { background: linear-gradient(160deg, #fdf0f5 60%, #fde0ee); }
+  .bg-Sparkling { background: linear-gradient(160deg, #f0f3fd 60%, #dce9ff); }
+  .bg-Fortified { background: linear-gradient(160deg, #faf3e8 60%, #f5e8cc); }
+
+  .wine-card-body {
+    padding: 1rem 1.3rem 1.4rem;
+    flex: 1; display: flex; flex-direction: column;
+    border-top: 3px solid var(--yellow);
+  }
+
+  .wine-region {
+    font-size: 0.58rem; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--purple);
+    font-weight: 600; margin-bottom: 0.3rem; opacity: 0.75;
+  }
+
+  .wine-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem; font-weight: 600;
+    line-height: 1.2; margin-bottom: 0.35rem; color: var(--ink);
+  }
+
+  .wine-vintage { font-size: 0.72rem; color: var(--muted); font-weight: 300; margin-bottom: auto; }
+
+  .wine-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--border);
+  }
+
+  .wine-price { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; color: var(--purple); }
+  .wine-rating { font-size: 0.66rem; color: var(--yellow); letter-spacing: 1px; }
+
+  /* PAGINATION */
+  .pagination-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.8rem 3rem 3.5rem; flex-wrap: wrap; gap: 1rem;
+    border-top: 1px solid var(--border); margin-top: 1.5rem;
+  }
+
+  .pagination-controls { display: flex; gap: 0.3rem; align-items: center; }
+
+  .page-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 2px solid var(--border); background: transparent;
+    font-family: 'Jost', sans-serif; font-size: 0.82rem;
+    font-weight: 500; color: var(--ink); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s;
+  }
+  .page-btn:hover:not(:disabled) { border-color: var(--purple); color: var(--purple); background: var(--pale); }
+  .page-btn.active {
+    background: var(--purple); color: var(--yellow);
+    border-color: var(--purple); font-weight: 700;
+    box-shadow: 0 4px 12px rgba(76,7,67,0.3);
+  }
+  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .page-btn.ellipsis { border: none; cursor: default; color: var(--muted); }
+  .page-btn.ellipsis:hover { color: var(--muted); border: none; background: none; }
+
+  .results-count { font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,10,46,0.88); z-index: 1000;
+    align-items: center; justify-content: center;
+    padding: 2rem; backdrop-filter: blur(8px);
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.22s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  .modal {
+    background: var(--white); max-width: 800px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+    display: grid; grid-template-columns: 1fr 1.25fr;
+    border-top: 5px solid var(--yellow); border-radius: 4px;
+    animation: slideUp 0.28s ease;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+  @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+  .modal-left {
+    background: linear-gradient(160deg, var(--purple) 0%, var(--purple-dark) 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 3rem 2rem; min-height: 520px; position: relative;
+  }
+
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.7);
+    width: 34px; height: 34px; border-radius: 50%;
+    font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.18s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.25); color: #fff; }
+
+  .modal-bottle {
+    width: 200px; height: 340px; object-fit: contain;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 16px 40px rgba(0,0,0,0.6));
+    transition: transform 0.3s ease;
+  }
+  .modal-bottle:hover { transform: scale(1.06); }
+  .modal-bottle-fallback { font-size: 7rem; margin-bottom: 1.5rem; }
+
+  .modal-price-big {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem; font-weight: 600; color: var(--yellow);
+    text-shadow: 0 2px 12px rgba(245,168,0,0.3);
+  }
+
+  .modal-vintage-tag {
+    font-size: 0.65rem; letter-spacing: 0.25em;
+    text-transform: uppercase; color: rgba(255,255,255,0.45); margin-top: 0.5rem;
+  }
+
+  .modal-right { padding: 2.5rem 2.2rem 2rem; display: flex; flex-direction: column; }
+
+  .modal-region {
+    font-size: 0.6rem; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--purple);
+    opacity: 0.7; margin-bottom: 0.4rem;
+  }
+
+  .modal-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.1rem; font-weight: 300;
+    line-height: 1.1; color: var(--ink); margin-bottom: 0.3rem;
+  }
+
+  .modal-type-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.4rem; }
+  .modal-stars { color: var(--yellow); font-size: 0.82rem; letter-spacing: 2px; }
+  .modal-type-label { font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+
+  .modal-divider { width: 40px; height: 3px; background: linear-gradient(90deg, var(--yellow), #ff9800); margin-bottom: 1.3rem; border-radius: 2px; }
+
+  .modal-desc { font-size: 0.87rem; line-height: 1.88; color: var(--muted); font-weight: 300; flex: 1; margin-bottom: 1.5rem; }
+
+  .modal-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-bottom: 1.8rem; }
+
+  .spec-item { background: var(--pale); padding: 0.65rem 0.9rem; border-left: 3px solid var(--yellow); border-radius: 0 4px 4px 0; }
+  .spec-label { font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--purple); display: block; margin-bottom: 2px; font-weight: 600; }
+  .spec-value { font-size: 0.84rem; font-weight: 500; color: var(--ink); }
+
+  .buy-btn {
+    display: block; width: 100%; padding: 1rem;
+    background: linear-gradient(135deg, var(--purple), var(--purple-mid));
+    color: var(--yellow); border: none;
+    font-family: 'Jost', sans-serif; font-size: 0.72rem;
+    font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase;
+    cursor: pointer; text-align: center; text-decoration: none;
+    transition: all 0.2s; border-radius: 3px;
+    box-shadow: 0 4px 15px rgba(76,7,67,0.3);
+  }
+  .buy-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(76,7,67,0.4); }
+
+  /* FOOTER */
+  footer {
+    background: var(--purple-dark); color: rgba(255,255,255,0.45);
+    text-align: center; padding: 2.8rem;
+    font-size: 0.73rem; font-weight: 300;
+    letter-spacing: 0.07em; border-top: 4px solid var(--yellow);
+  }
+  footer strong { color: var(--yellow); font-weight: 600; }
+  footer a { color: rgba(255,255,255,0.55); text-decoration: none; }
+  footer a:hover { color: var(--yellow); }
+
+  /* ── HAMBURGER MENU ── */
+  .hamburger {
+    display: none; flex-direction: column; justify-content: center; gap: 5px;
+    background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 6px; padding: 0.45rem 0.6rem; cursor: pointer; transition: all 0.2s;
+  }
+  .hamburger:hover { background: rgba(255,255,255,0.22); }
+  .hamburger span {
+    display: block; width: 20px; height: 2px;
+    background: #fff; border-radius: 2px;
+    transition: transform 0.25s, opacity 0.25s;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .mobile-menu {
+    display: none; position: fixed;
+    top: 80px; left: 0; right: 0;
+    background: var(--purple-dark);
+    z-index: 99; flex-direction: column;
+    border-top: 2px solid var(--yellow);
+    box-shadow: 0 8px 24px rgba(26,10,46,0.4);
+    padding: 0.5rem 0 1rem;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    color: rgba(255,255,255,0.85); text-decoration: none;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.85rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.85rem 1.8rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    transition: all 0.15s;
+  }
+  .mobile-menu a:hover { color: var(--yellow); padding-left: 2.2rem; }
+  .mobile-menu a.cta {
+    background: var(--yellow); color: var(--purple-dark);
+    margin: 0.8rem 1.5rem 0; border-radius: 4px;
+    text-align: center; font-weight: 700; border-bottom: none;
+  }
+  .mobile-menu a.cta:hover { background: var(--yellow-light); padding-left: 1.5rem; }
+
+  /* ── PRICE RANGE SLIDER ── */
+
+  /* ── BOTTLE ZOOM OVERLAY ── */
+  .bottle-zoom-overlay {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.92); backdrop-filter: blur(6px);
+    display: none; align-items: center; justify-content: center;
+    cursor: zoom-out;
+  }
+  .bottle-zoom-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+  .bottle-zoom-overlay img {
+    max-width: 90vw; max-height: 90vh;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 60px rgba(245,168,0,0.3));
+    animation: zoomIn 0.22s ease;
+  }
+  @keyframes zoomIn { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
+  .bottle-zoom-close {
+    position: fixed; top: 1.2rem; right: 1.5rem;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    color: #fff; width: 38px; height: 38px; border-radius: 50%;
+    font-size: 1.1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .bottle-zoom-close:hover { background: rgba(255,255,255,0.28); }
+  .modal-bottle { cursor: zoom-in !important; }
+
+  /* ── ORDER RECEIPT PAGE ── */
+  .receipt-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(26,10,46,0.65); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; padding: 1rem;
+  }
+  .receipt-overlay.open { display: flex; }
+  .receipt-modal {
+    background: var(--white); border-radius: 8px;
+    width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(76,7,67,0.35);
+    transform: scale(0.95); transition: transform 0.22s;
+  }
+  .receipt-overlay.open .receipt-modal { transform: scale(1); }
+  .receipt-head {
+    background: var(--purple); color: #fff;
+    padding: 1.4rem 1.8rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-radius: 8px 8px 0 0;
+  }
+  .receipt-head-title { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 400; }
+  .receipt-close {
+    background: rgba(255,255,255,0.15); border: none; color: #fff;
+    width: 32px; height: 32px; border-radius: 50%; font-size: 1rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+  }
+  .receipt-close:hover { background: rgba(255,255,255,0.28); }
+  .receipt-body { padding: 1.8rem; }
+  .receipt-logo {
+    text-align: center; margin-bottom: 1.5rem;
+    padding-bottom: 1.2rem; border-bottom: 2px solid var(--border);
+  }
+  .receipt-logo h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: var(--purple); font-weight: 400; }
+  .receipt-logo p { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.1em; margin-top: 0.3rem; }
+  .receipt-meta {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+    margin-bottom: 1.5rem; font-size: 0.78rem;
+  }
+  .receipt-meta-item { display: flex; flex-direction: column; gap: 0.15rem; }
+  .receipt-meta-label { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .receipt-meta-value { color: var(--ink); font-weight: 500; }
+  .receipt-items { width: 100%; border-collapse: collapse; margin-bottom: 1.2rem; }
+  .receipt-items th {
+    font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--purple);
+    border-bottom: 2px solid var(--yellow); padding: 0.4rem 0.6rem; text-align: left; font-weight: 700;
+  }
+  .receipt-items td { padding: 0.55rem 0.6rem; font-size: 0.8rem; color: var(--ink); border-bottom: 1px solid var(--border); }
+  .receipt-items tr:last-child td { border-bottom: none; }
+  .receipt-total-row td { font-weight: 700; border-top: 2px solid var(--border) !important; font-size: 0.88rem; }
+  .receipt-footer-note { font-size: 0.7rem; color: var(--muted); text-align: center; line-height: 1.8; margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .btn-print {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    width: 100%; background: var(--purple); color: #fff;
+    border: none; border-radius: 4px; padding: 0.85rem;
+    font-family: 'Jost', sans-serif; font-size: 0.78rem;
+    font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s; margin-top: 1rem;
+  }
+  .btn-print:hover { background: var(--purple-dark); }
+
+  .btn-print:hover { background: var(--purple-dark); }
+
+  /* ── COOKIE BANNER ── */
+  .cookie-banner {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+    background: var(--ink); color: #fff;
+    padding: 1.1rem 2rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+    box-shadow: 0 -4px 24px rgba(26,10,46,0.35);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+    flex-wrap: wrap;
+  }
+  .cookie-banner.visible { transform: translateY(0); }
+  .cookie-banner-text {
+    font-size: 0.78rem; line-height: 1.65; color: rgba(255,255,255,0.85);
+    flex: 1; min-width: 220px;
+  }
+  .cookie-banner-text a { color: var(--yellow); text-decoration: underline; cursor: pointer; }
+  .cookie-banner-btns { display: flex; gap: 0.6rem; flex-shrink: 0; flex-wrap: wrap; }
+  .cookie-accept {
+    background: var(--yellow); color: var(--purple-dark);
+    border: none; border-radius: 4px; padding: 0.55rem 1.2rem;
+    font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .cookie-accept:hover { background: var(--yellow-light); }
+  .cookie-decline {
+    background: transparent; color: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; padding: 0.55rem 1rem;
+    font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .cookie-decline:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+  /* ── TERMS MODAL ── */
+  .terms-modal-overlay {
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(26,10,46,0.7); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center; padding: 1rem;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .terms-modal-overlay.open { opacity: 1; pointer-events: all; }
+  .terms-modal {
+    background: var(--cream); border-radius: 8px;
+    width: 100%; max-width: 560px; max-height: 80vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 80px rgba(76,7,67,0.35);
+    transform: scale(0.95); transition: transform 0.2s;
+  }
+  .terms-modal-overlay.open .terms-modal { transform: scale(1); }
+  .terms-modal-head {
+    background: var(--purple); color: #fff;
+    padding: 1.2rem 1.5rem; border-radius: 8px 8px 0 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .terms-modal-head h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; }
+  .terms-modal-close {
+    background: rgba(255,255,255,0.15); border: none; color: #fff;
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+    font-size: 0.9rem; display: flex; align-items: center; justify-content: center;
+  }
+  .terms-modal-body { padding: 1.5rem; overflow-y: auto; font-size: 0.8rem; line-height: 1.8; color: var(--muted); }
+  .terms-modal-body h4 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--purple); margin: 1.1rem 0 0.4rem; }
+  .terms-modal-body p { margin-bottom: 0.6rem; }
+  .terms-modal-foot { padding: 1rem 1.5rem; border-top: 1px solid var(--border); text-align: right; }
+  .terms-modal-foot button {
+    background: var(--purple); color: #fff; border: none; border-radius: 4px;
+    padding: 0.6rem 1.4rem; font-family: 'Jost', sans-serif; font-size: 0.75rem;
+    font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer;
+  }
+
+  /* ── T&C CHECKOUT CHECKBOX ── */
+  .terms-check {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    background: var(--pale); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0.9rem; margin: 0.6rem 0;
+  }
+  .terms-check input[type="checkbox"] {
+    width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px;
+    accent-color: var(--purple); cursor: pointer;
+  }
+  .terms-check p { font-size: 0.76rem; color: var(--muted); line-height: 1.6; }
+  .terms-check a { color: var(--purple); font-weight: 600; cursor: pointer; text-decoration: underline; }
+
+  /* ── ORDER CONFIRMATION PAGE ── */
+  .confirm-page-overlay {
+    position: fixed; inset: 0; z-index: 5000;
+    background: var(--cream);
+    display: flex; flex-direction: column; align-items: center;
+    overflow-y: auto; padding: 2rem 1rem 4rem;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .confirm-page-overlay.open { opacity: 1; pointer-events: all; }
+  .confirm-page {
+    width: 100%; max-width: 600px;
+    font-family: 'Jost', sans-serif;
+  }
+  .confirm-page-header {
+    background: var(--purple); color: #fff;
+    border-radius: 8px 8px 0 0; padding: 1.8rem 2rem;
+    text-align: center;
+  }
+  .confirm-page-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 400; margin-bottom: 0.3rem;
+  }
+  .confirm-page-header p { font-size: 0.72rem; letter-spacing: 0.15em; color: rgba(255,255,255,0.6); text-transform: uppercase; }
+  .confirm-page-body {
+    background: var(--white); border: 1px solid var(--border);
+    border-top: none; border-radius: 0 0 8px 8px;
+    padding: 2rem;
+  }
+  .confirm-badge {
+    text-align: center; font-size: 3.5rem; margin-bottom: 0.8rem;
+  }
+  .confirm-order-num {
+    text-align: center;
+    background: var(--pale); border: 1px solid var(--border); border-radius: 4px;
+    padding: 0.6rem 1.2rem; display: inline-block;
+    font-size: 0.85rem; font-weight: 700; color: var(--purple);
+    letter-spacing: 0.1em; margin: 0 auto 1.5rem; display: block; width: fit-content;
+    margin: 0 auto 1.5rem;
+  }
+  .confirm-message {
+    text-align: center; font-size: 0.85rem; color: var(--muted);
+    line-height: 1.8; margin-bottom: 1.8rem;
+  }
+  .confirm-section-title {
+    font-size: 0.62rem; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--purple);
+    border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;
+    margin-bottom: 0.9rem; margin-top: 1.6rem;
+  }
+  .confirm-detail-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .confirm-detail-item { display: flex; flex-direction: column; gap: 0.1rem; }
+  .confirm-detail-label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+  .confirm-detail-value { font-size: 0.82rem; color: var(--ink); font-weight: 500; }
+  .confirm-items-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+  .confirm-items-table th { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); padding: 0.4rem 0.5rem; border-bottom: 2px solid var(--border); text-align: left; }
+  .confirm-items-table td { padding: 0.55rem 0.5rem; border-bottom: 1px solid var(--border); color: var(--ink); }
+  .confirm-items-table tr:last-child td { border-bottom: none; }
+  .confirm-total-row td { font-weight: 700; border-top: 2px solid var(--border) !important; font-size: 0.88rem; padding-top: 0.7rem; }
+  .confirm-share-bar {
+    margin-top: 2rem; background: var(--pale); border: 1px solid var(--border);
+    border-radius: 6px; padding: 1rem 1.2rem;
+  }
+  .confirm-share-title { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--purple); margin-bottom: 0.6rem; }
+  .confirm-share-url {
+    display: flex; gap: 0.5rem; align-items: center;
+  }
+  .confirm-share-input {
+    flex: 1; font-family: 'Jost', sans-serif; font-size: 0.75rem;
+    color: var(--muted); background: var(--white); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0.5rem 0.7rem; outline: none;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .confirm-copy-btn {
+    background: var(--purple); color: #fff; border: none; border-radius: 4px;
+    padding: 0.5rem 1rem; font-family: 'Jost', sans-serif; font-size: 0.72rem;
+    font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; white-space: nowrap; transition: background 0.2s; flex-shrink: 0;
+  }
+  .confirm-copy-btn:hover { background: var(--purple-dark); }
+  .confirm-copy-btn.copied { background: #2e7d32; }
+  .confirm-actions {
+    display: flex; gap: 0.8rem; margin-top: 1.5rem; flex-wrap: wrap;
+  }
+  .confirm-actions button {
+    flex: 1; min-width: 140px; padding: 0.75rem;
+    font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.13em; text-transform: uppercase; border-radius: 4px;
+    cursor: pointer; transition: all 0.2s; border: none;
+  }
+  .confirm-btn-primary { background: var(--yellow); color: var(--purple-dark); }
+  .confirm-btn-primary:hover { background: var(--yellow-light); }
+  .confirm-btn-secondary { background: transparent; color: var(--purple); border: 2px solid var(--purple) !important; }
+  .confirm-btn-secondary:hover { background: var(--purple); color: #fff; }
+
+  /* ── SALES HISTORY ── */
+  .sm-tabs {
+    display: flex; gap: 0; border-bottom: 2px solid var(--border);
+    padding: 0 2rem; background: var(--sm-header-bg, #f0ebf8);
+  }
+  .sm-tab {
+    font-family: 'Jost', sans-serif; font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+    background: none; border: none; padding: 0.75rem 1.2rem;
+    cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px;
+    transition: all 0.18s;
+  }
+  .sm-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+  .sm-tab:hover:not(.active) { color: var(--ink); }
+  .sm-panel { display: none; padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto; }
+  .sm-panel.active { display: block; }
+
+  .history-table { width: 100%; border-collapse: collapse; }
+  .history-table th {
+    font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--purple); border-bottom: 2px solid var(--yellow);
+    padding: 0.5rem 0.8rem; text-align: left; font-weight: 700;
+  }
+  .history-table td {
+    padding: 0.65rem 0.8rem; font-size: 0.8rem; color: var(--ink);
+    border-bottom: 1px solid var(--border); vertical-align: top;
+  }
+  .history-table tr:hover td { background: var(--pale); }
+  .history-empty { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 3rem 1rem; line-height: 1.8; }
+
+  /* ── LOW STOCK ALERT ── */
+  .low-stock-alert {
+    background: #fff3e0; border: 1.5px solid #f5a800;
+    border-radius: 8px; padding: 1rem 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+  .low-stock-alert-title {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; color: #c07800; margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .low-stock-item {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.78rem; color: var(--ink); padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(245,168,0,0.25);
+  }
+  .low-stock-item:last-child { border-bottom: none; }
+  .low-stock-count { font-weight: 700; color: #c0392b; }
+
+  /* Bulk reset button */
+  .btn-bulk-reset {
+    font-family: 'Jost', sans-serif; font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.45rem 1rem; border-radius: 4px;
+    cursor: pointer; transition: all 0.15s;
+    background: var(--yellow); color: var(--purple-dark); border: none;
+  }
+  .btn-bulk-reset:hover { background: var(--yellow-light); }
+
+  @media (max-width: 640px) {
+    .modal { grid-template-columns: 1fr; }
+    .modal-left { min-height: 240px; }
+    header { padding: 0 1.2rem; }
+    nav a { display: none; }
+    nav .cart-nav-wrap { display: inline-flex; }
+    .hamburger { display: flex; }
+    .shop-section, .toolbar, .pagination-bar { padding: 1.2rem; }
+    .toolbar { flex-direction: column; align-items: flex-start; }
+    .stats-bar { flex-wrap: wrap; }
+    .stat { min-width: 50%; }
+    .hero { padding: 3.5rem 1.5rem 3rem; }
+    .search-bar-wrap { padding: 0.8rem 1.2rem; }
+  }
+  /* ── ADMIN MODE ── */
+  .admin-only { display: none !important; }
+  .admin-mode .admin-only { display: flex !important; }
+
+  /* Stock Manager Bar */
+  .admin-bar {
+    background: #f0ebf8;
+    border-bottom: 1.5px solid #d9cff0;
+    padding: 0.65rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+  }
+  .admin-bar-left {
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .admin-bar-icon {
+    font-size: 1.1rem; color: var(--purple);
+  }
+  .admin-bar-title {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.95rem; font-weight: 600;
+    color: var(--ink); letter-spacing: 0.01em;
+  }
+  .admin-bar-badge {
+    background: var(--purple); color: #fff;
+    font-size: 0.56rem; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 0.2rem 0.55rem; border-radius: 3px;
+  }
+  .admin-bar-stats {
+    font-size: 0.78rem; color: var(--muted);
+    font-weight: 400; margin-left: 0.5rem;
+  }
+  .admin-bar-actions { display: flex; gap: 0.5rem; align-items: center; }
+  .admin-btn {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.45rem 1rem; border-radius: 4px;
+    cursor: pointer; border: none; transition: all 0.15s;
+  }
+  .admin-btn.exit {
+    background: var(--purple); color: #fff;
+    border: 1.5px solid var(--purple);
+  }
+  .admin-btn.exit:hover { background: var(--purple-dark); border-color: var(--purple-dark); }
+
+  /* Stock Manager overlay panel */
+  .stock-manager-overlay {
+    position: fixed; inset: 0; z-index: 150;
+    background: #f5f0fc;
+    overflow-y: auto;
+    display: none;
+  }
+  .stock-manager-overlay.open { display: block; }
+
+  .sm-header {
+    background: #f0ebf8;
+    border-bottom: 1.5px solid #d9cff0;
+    padding: 0.65rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .sm-header-left {
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .sm-header-title {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.95rem; font-weight: 600; color: var(--ink);
+  }
+  .sm-header-badge {
+    background: var(--purple); color: #fff;
+    font-size: 0.56rem; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 0.2rem 0.55rem; border-radius: 3px;
+  }
+  .sm-stock-summary {
+    font-size: 0.78rem; color: var(--muted); margin-left: 0.3rem;
+  }
+  .sm-stock-summary strong { color: var(--ink); }
+  .sm-exit-btn {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.45rem 1.1rem; border-radius: 4px;
+    cursor: pointer; background: var(--purple); color: #fff;
+    border: none; transition: all 0.15s;
+  }
+  .sm-exit-btn:hover { background: var(--purple-dark); }
+
+  .sm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .sm-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.6rem;
+    box-shadow: 0 1px 4px rgba(76,7,67,0.07);
+    border: 1.5px solid #e8e0f4;
+    transition: box-shadow 0.2s;
+  }
+  .sm-card:hover { box-shadow: 0 4px 14px rgba(76,7,67,0.13); }
+  .sm-card.oos { opacity: 0.65; }
+
+  .sm-card-img {
+    width: 90px; height: 90px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .sm-card-img img {
+    width: 100%; height: 100%; object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+  .sm-card-img .sm-emoji { font-size: 3rem; }
+
+  .sm-oos-badge {
+    position: absolute; top: -6px; right: -6px;
+    background: #e74c3c; color: #fff;
+    font-size: 0.48rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.18rem 0.45rem; border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .sm-card-name {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.8rem; font-weight: 600;
+    color: var(--ink); text-align: center; line-height: 1.3;
+  }
+  .sm-card-sub {
+    font-size: 0.68rem; color: var(--muted);
+    text-align: center; line-height: 1.3;
+  }
+
+  .sm-card-status {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-top: 0.2rem;
+  }
+  .sm-status-label {
+    font-size: 0.72rem; font-weight: 500;
+  }
+  .sm-status-label.in { color: #27ae60; }
+  .sm-status-label.out { color: var(--muted); }
+
+  /* Toggle switch */
+  .sm-toggle {
+    position: relative; display: inline-block;
+    width: 44px; height: 24px; flex-shrink: 0;
+  }
+  .sm-toggle input { opacity: 0; width: 0; height: 0; }
+  .sm-toggle-slider {
+    position: absolute; cursor: pointer;
+    inset: 0; border-radius: 24px;
+    background: #ccc;
+    transition: background 0.2s;
+  }
+  .sm-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .sm-toggle input:checked + .sm-toggle-slider { background: #27ae60; }
+  .sm-toggle input:checked + .sm-toggle-slider::before { transform: translateX(20px); }
+
+  /* Stock qty input row */
+  .sm-stock-row {
+    display: flex; align-items: center; gap: 0.35rem;
+    margin-top: 0.1rem; width: 100%;
+  }
+  .sm-qty-btn {
+    width: 26px; height: 26px; border: 1px solid var(--border);
+    border-radius: 4px; background: var(--white);
+    cursor: pointer; font-size: 0.9rem; color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .sm-qty-btn:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .sm-qty-input {
+    flex: 1; text-align: center;
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 0.25rem 0.2rem;
+    font-family: 'Jost', sans-serif; font-size: 0.82rem;
+    font-weight: 600; color: var(--ink);
+    background: var(--white); outline: none;
+    transition: border-color 0.2s;
+    min-width: 0;
+  }
+  .sm-qty-input:focus { border-color: var(--purple-mid); box-shadow: 0 0 0 2px rgba(106,16,144,0.1); }
+
+  /* Out of stock card state (main shop) */
+  .wine-card.out-of-stock .wine-card-img { opacity: 0.45; filter: grayscale(60%); }
+  .wine-card.out-of-stock .wine-name { color: var(--muted); }
+  .oos-badge {
+    position: absolute; top: 6px; right: 6px;
+    background: #c0392b; color: #fff;
+    font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 0.25rem 0.55rem; border-radius: 3px; z-index: 10;
+  }
+  .wine-card.out-of-stock .add-to-cart-btn {
+    background: var(--muted); cursor: not-allowed; opacity: 0.6;
+  }
+
+  /* Hide old admin card controls */
+  .admin-card-controls { display: none !important; }
+  .admin-toggle-btn { display: none; }
+
+  /* Admin login modal */
+  .admin-login-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(26,10,46,0.75); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .admin-login-overlay.open { opacity: 1; pointer-events: all; }
+  .admin-login-box {
+    background: var(--white); border-radius: 8px;
+    padding: 2.2rem 2rem; width: 100%; max-width: 360px;
+    box-shadow: 0 24px 60px rgba(76,7,67,0.35);
+    transform: scale(0.95); transition: transform 0.2s;
+  }
+  .admin-login-overlay.open .admin-login-box { transform: scale(1); }
+  .admin-login-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem; font-weight: 400; color: var(--purple);
+    margin-bottom: 0.3rem;
+  }
+  .admin-login-sub {
+    font-size: 0.72rem; color: var(--muted);
+    letter-spacing: 0.08em; margin-bottom: 1.5rem;
+  }
+  .admin-login-box label {
+    font-size: 0.65rem; font-weight: 600;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); display: block; margin-bottom: 0.35rem;
+  }
+  .admin-login-box input {
+    font-family: 'Jost', sans-serif; font-size: 0.88rem;
+    color: var(--ink); background: var(--cream);
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 0.65rem 0.85rem; outline: none; width: 100%;
+    margin-bottom: 1rem; transition: border-color 0.2s;
+  }
+  .admin-login-box input:focus { border-color: var(--purple-mid); box-shadow: 0 0 0 3px rgba(106,16,144,0.1); }
+  .admin-login-error {
+    font-size: 0.75rem; color: #c0392b;
+    margin-bottom: 0.8rem; display: none;
+  }
+  .admin-login-error.visible { display: block; }
+  .btn-admin-login {
+    width: 100%; background: var(--purple); color: #fff;
+    border: none; border-radius: 4px; padding: 0.85rem;
+    font-family: 'Jost', sans-serif; font-size: 0.78rem;
+    font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s; margin-bottom: 0.8rem;
+  }
+  .btn-admin-login:hover { background: var(--purple-dark); }
+  .btn-admin-cancel {
+    width: 100%; background: transparent; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 4px; padding: 0.65rem;
+    font-family: 'Jost', sans-serif; font-size: 0.72rem;
+    font-weight: 500; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-admin-cancel:hover { background: var(--pale); }
+</style>
+</head>
+<body>
+
+<!-- STOCK MANAGER OVERLAY PANEL -->
+<div class="stock-manager-overlay" id="stockManagerOverlay">
+  <div class="sm-header">
+    <div class="sm-header-left">
+      <span style="font-size:1.1rem;">⚙</span>
+      <span class="sm-header-title">Stock Manager</span>
+      <span class="sm-header-badge">ADMIN</span>
+      <span class="sm-stock-summary" id="smStockSummary"></span>
+    </div>
+    <button class="sm-exit-btn" onclick="adminLogout()">EXIT ADMIN</button>
+  </div>
+  <div class="sm-grid" id="smGrid"></div>
+</div>
+
+<!-- ADMIN BAR (legacy stub, hidden) -->
+<div id="adminBar" style="display:none !important;"></div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="admin-login-overlay" id="adminLoginOverlay">
+  <div class="admin-login-box">
+    <div class="admin-login-title">Staff Login</div>
+    <div class="admin-login-sub">Stuarts Premier Daily — Admin Access</div>
+    <label>Username</label>
+    <input type="text" id="adminUser" placeholder="Enter username" autocomplete="off">
+    <label>Password</label>
+    <input type="password" id="adminPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <div class="admin-login-error" id="adminError">Incorrect username or password.</div>
+    <button class="btn-admin-login" onclick="doAdminLogin()">Login →</button>
+    <button class="btn-admin-cancel" onclick="closeAdminLogin()">Cancel</button>
+  </div>
+</div>
+
+<!-- BOTTLE ZOOM OVERLAY -->
+<div class="bottle-zoom-overlay" id="bottleZoomOverlay" onclick="closeBottleZoom()">
+  <button class="bottle-zoom-close" onclick="closeBottleZoom()">✕</button>
+  <img id="bottleZoomImg" src="" alt="Wine bottle">
+</div>
+
+<!-- RECEIPT OVERLAY -->
+<div class="receipt-overlay" id="receiptOverlay">
+  <div class="receipt-modal" id="receiptModal">
+    <div class="receipt-head">
+      <div class="receipt-head-title">🧾 Order Receipt</div>
+      <button class="receipt-close" onclick="closeReceipt()">✕</button>
+    </div>
+    <div class="receipt-body" id="receiptBody"></div>
+  </div>
+</div>
+
+<!-- ── COOKIE CONSENT BANNER ── -->
+<div class="cookie-banner" id="cookieBanner">
+  <div class="cookie-banner-text">
+    🍪 We use essential cookies to keep your cart and preferences working. By continuing to use this site you agree to our
+    <a onclick="openTermsModal()">Cookie &amp; Privacy Policy</a>.
+  </div>
+  <div class="cookie-banner-btns">
+    <button class="cookie-decline" onclick="dismissCookies(false)">Decline</button>
+    <button class="cookie-accept" onclick="dismissCookies(true)">Accept Cookies</button>
+  </div>
+</div>
+
+<!-- ── TERMS & CONDITIONS MODAL ── -->
+<div class="terms-modal-overlay" id="termsModalOverlay">
+  <div class="terms-modal">
+    <div class="terms-modal-head">
+      <h3>📋 Terms &amp; Conditions</h3>
+      <button class="terms-modal-close" onclick="closeTermsModal()">✕</button>
+    </div>
+    <div class="terms-modal-body">
+      <h4>1. Age Restriction</h4>
+      <p>You must be aged 18 or over to purchase alcohol from Stuarts Premier Daily. By placing an order you confirm you meet this requirement. We operate Challenge 25 and may request ID upon delivery. We reserve the right to refuse delivery if we have reason to believe you are under 18.</p>
+      <h4>2. Orders &amp; Payment</h4>
+      <p>All orders are subject to availability. Payment is by cash on delivery only. The exact amount shown at checkout must be ready when your order arrives. We cannot process orders where payment is unavailable on delivery.</p>
+      <h4>3. Delivery</h4>
+      <p>We deliver to local areas around Stowmarket, Suffolk. Delivery times are estimates only and may vary. We will contact you on the phone number provided to confirm your delivery slot. Delivery is to the address provided at checkout.</p>
+      <h4>4. Cancellations</h4>
+      <p>Orders may be cancelled by calling us on 01449 612259 before dispatch. Once an order has been dispatched for delivery we are unable to accept cancellations.</p>
+      <h4>5. Prices &amp; Availability</h4>
+      <p>All prices shown include VAT at the current rate. Prices and product availability are subject to change without notice. In the event a product becomes unavailable after your order is placed, we will contact you to offer a suitable alternative or a full refund.</p>
+      <h4>6. Responsible Drinking</h4>
+      <p>Stuarts Premier Daily promotes responsible alcohol consumption. We will not knowingly sell alcohol to anyone who appears to be intoxicated or to anyone purchasing on behalf of a person under 18.</p>
+      <h4>7. Privacy &amp; Cookies</h4>
+      <p>We collect your name, email, phone number and delivery address solely to process and fulfil your order. This information is stored locally in your browser and is not shared with third parties. We use essential cookies only, required for the shopping cart and session preferences to function.</p>
+      <h4>8. Contact</h4>
+      <p>Stuarts Premier Daily, 2 Creeting Rd W, Stowmarket, IP14 5AU. Tel: 01449 612259.</p>
+    </div>
+    <div class="terms-modal-foot">
+      <button onclick="closeTermsModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ORDER CONFIRMATION PAGE ── -->
+<div class="confirm-page-overlay" id="confirmPageOverlay">
+  <div class="confirm-page" id="confirmPageContent"></div>
+</div>
+
+<div class="announce-bar">🍷 All prices include VAT</div>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-badge">🍷</div>
+    <div class="logo-text">
+      <span class="logo-main">Stuarts <span>Premier</span> Daily</span>
+      <span class="logo-sub">Fine Wines &amp; Spirits — Stowmarket</span>
+    </div>
+  </div>
+  <nav>
+    <a href="#collection" class="nav-collection">Collection</a>
+    <a href="https://www.google.com/maps/dir/?api=1&destination=2%20Creeting%20Rd%20W%2CStowmarket%2CIP14%205AU%2CUnited%20Kingdom" target="_blank">Directions</a>
+    <a href="tel:01449612259" class="cta">☎ 01449 612259</a>
+    <div class="cart-nav-wrap" onmouseenter="renderCartTooltip()">
+      <button class="cart-nav-btn" onclick="openCart()">
+        🛒 <span class="cart-nav-count" id="cartNavCount">0</span>
+      </button>
+      <div class="cart-tooltip" id="cartTooltip">
+        <div class="cart-tooltip-title">Your Cart</div>
+        <div id="cartTooltipItems"><div class="cart-tooltip-empty">Your cart is empty</div></div>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+</header>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#collection" onclick="closeMobileMenu()">🍷 Collection</a>
+  <a href="https://www.google.com/maps/dir/?api=1&destination=2%20Creeting%20Rd%20W%2CStowmarket%2CIP14%205AU%2CUnited%20Kingdom" target="_blank" onclick="closeMobileMenu()">📍 Directions</a>
+  <a href="tel:01449612259" class="cta">☎ 01449 612259</a>
+</div>
+
+<section class="hero">
+  <div class="hero-stripe"></div>
+  <span class="hero-label">📍 2 Creeting Rd W &bull; Stowmarket &bull; IP14 5AU &bull; United Kingdom</span>
+  <h1>Exceptional Wines<br>for <em>Every Occasion</em></h1>
+  <div class="hero-divider"></div>
+  <p>Curated from the finest estates and vineyards worldwide. Each bottle tells a story of terroir, tradition, and craft.</p>
+  <div class="hero-links">
+    <a href="tel:01449612259" class="hero-link-btn">☎ Call Us</a>
+    <a href="https://www.google.com/maps/dir/?api=1&destination=2%20Creeting%20Rd%20W%2CStowmarket%2CIP14%205AU%2CUnited%20Kingdom" target="_blank" class="hero-link-btn outline">📍 Get Directions</a>
+    <a href="https://www.premier-stores.co.uk/index.php/our-stores/stuarts-premier-daily" target="_blank" class="hero-link-btn outline">🔗 Store Page</a>
+  </div>
+</section>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num">20+</div><div class="stat-label">Wines in Stock</div></div>
+  <div class="stat"><div class="stat-num">5</div><div class="stat-label">Categories</div></div>
+  <div class="stat"><div class="stat-num">★ 4.8</div><div class="stat-label">Customer Rating</div></div>
+  <div class="stat"><div class="stat-num">£4.20</div><div class="stat-label">Starting From</div></div>
+</div>
+
+<div class="search-bar-wrap">
+  <div class="search-bar-inner">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" type="text" placeholder="Search wines, grapes, regions…" oninput="handleSearch(this.value)">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All Wines</button>
+    <button class="filter-btn" onclick="setFilter('Red',this)">Red</button>
+    <button class="filter-btn" onclick="setFilter('White',this)">White</button>
+    <button class="filter-btn" onclick="setFilter('Rosé',this)">Rosé</button>
+    <button class="filter-btn" onclick="setFilter('Sparkling',this)">Sparkling</button>
+    <button class="filter-btn" onclick="setFilter('Fortified',this)">Fortified</button>
+    <button class="filter-btn" id="saleFilterBtn" onclick="toggleSaleFilter(this)" style="border-color:#c0392b;color:#c0392b;">🏷️ On Sale</button>
+  </div>
+  <div class="sort-wrapper" id="sortWrapper">
+    <button class="sort-btn" id="sortBtn" onclick="toggleSort()">
+      <span id="sortLabel">Featured</span>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="sort-dropdown" id="sortDropdown">
+      <div class="sort-label">Sort by:</div>
+      <button class="sort-option active" onclick="applySort('featured','Featured',this)">Featured</button>
+      <button class="sort-option" onclick="applySort('best-selling','Best Selling',this)">Best Selling</button>
+      <button class="sort-option" onclick="applySort('alpha-az','Alphabetically, A–Z',this)">Alphabetically, A–Z</button>
+      <button class="sort-option" onclick="applySort('alpha-za','Alphabetically, Z–A',this)">Alphabetically, Z–A</button>
+      <button class="sort-option" onclick="applySort('price-asc','Price, low to high',this)">Price, low to high</button>
+      <button class="sort-option" onclick="applySort('price-desc','Price, high to low',this)">Price, high to low</button>
+      <button class="sort-option" onclick="applySort('vintage-new','Date, new to old',this)">Date, new to old</button>
+      <button class="sort-option" onclick="applySort('vintage-old','Date, old to new',this)">Date, old to new</button>
+    </div>
+  </div>
+</div>
+
+<section class="shop-section" id="collection">
+  <p class="section-heading" id="sectionHeading">Our Current Selection</p>
+  <div class="wine-grid" id="wineGrid"></div>
+</section>
+
+<div class="pagination-bar">
+  <div class="pagination-controls" id="paginationControls"></div>
+  <div class="results-count" id="resultsCount"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-left">
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+      <div id="mBottleWrap"></div>
+      <div class="modal-price-big" id="mPrice"></div>
+      <div class="modal-vintage-tag" id="mVintageTag"></div>
+    </div>
+    <div class="modal-right">
+      <div class="modal-region" id="mRegion"></div>
+      <div class="modal-name" id="mName"></div>
+      <div class="modal-type-row">
+        <span class="modal-stars" id="mStars"></span>
+        <span class="modal-type-label" id="mType"></span>
+      </div>
+      <div class="modal-divider"></div>
+      <p class="modal-desc" id="mDesc"></p>
+      <div class="modal-specs" id="mSpecs"></div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <strong>Stuarts Premier Daily</strong> &mdash; 2 Creeting Rd W, Stowmarket, IP14 5AU, United Kingdom<br>
+  <span style="margin-top:0.6rem;display:inline-block;">
+    Tel: <a href="tel:01449612259">01449 612259</a> &nbsp;&bull;&nbsp; All prices include VAT
+  </span>
+</footer>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cartOverlay" onclick="handleCartOverlayClick(event)">
+  <div class="cart-drawer">
+    <div class="cart-head">
+      <div class="cart-head-title">🛒 Your Cart</div>
+      <button class="cart-close" onclick="closeCart()">✕</button>
+    </div>
+    <div class="cart-body" id="cartBody"></div>
+    <div class="cart-foot">
+      <div class="cart-subtotal"><span>Subtotal</span><span id="cartSubtotal">£0.00</span></div>
+      <div class="cart-total"><span>Total (incl. VAT)</span><span id="cartTotal">£0.00</span></div>
+      <button class="btn-checkout" id="btnCheckout" onclick="openCheckout()">Proceed to Order Details →</button>
+      <div class="cod-note">💷 Cash on Delivery — pay when your order arrives</div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT OVERLAY -->
+<div class="checkout-overlay" id="checkoutOverlay">
+  <div class="checkout-modal" id="checkoutModal">
+    <div class="co-head">
+      <div>
+        <div class="co-head-title">Order Details</div>
+        <div class="co-head-sub">Cash on Delivery — pay when your order arrives</div>
+      </div>
+      <button class="co-close" onclick="closeCheckout()">✕</button>
+    </div>
+    <div class="co-body" id="coBody">
+      <!-- Order summary -->
+      <div class="co-order-summary" id="coOrderSummary"></div>
+
+      <div class="co-section">Contact</div>
+      <div class="co-row">
+        <div class="co-field"><label>First Name *</label><input type="text" id="coFirst" placeholder="Jane" autocomplete="given-name"><span class="field-error-msg" id="errFirst">Please enter your first name.</span></div>
+        <div class="co-field"><label>Last Name *</label><input type="text" id="coLast" placeholder="Smith" autocomplete="family-name"><span class="field-error-msg" id="errLast">Please enter your last name.</span></div>
+      </div>
+      <div class="co-row full">
+        <div class="co-field"><label>Email *</label><input type="email" id="coEmail" placeholder="jane@example.com" autocomplete="email"><span class="field-error-msg" id="errEmail">Please enter a valid email address.</span></div>
+      </div>
+      <div class="co-row full">
+        <div class="co-field"><label>Phone *</label><input type="tel" id="coPhone" placeholder="07700 000000" autocomplete="tel" maxlength="15"><span class="field-error-msg" id="errPhone">Enter a valid UK phone number (e.g. 07700 000000).</span></div>
+      </div>
+
+      <div class="co-section">Delivery Address</div>
+      <div class="co-row full">
+        <div class="co-field"><label>Address Line 1 *</label><input type="text" id="coAddr1" placeholder="12 High Street" autocomplete="address-line1"><span class="field-error-msg" id="errAddr1">Please enter your street address (e.g. 12 High Street).</span></div>
+      </div>
+      <div class="co-row full">
+        <div class="co-field"><label>Address Line 2</label><input type="text" id="coAddr2" placeholder="Flat / Building (optional)" autocomplete="address-line2"></div>
+      </div>
+      <div class="co-row">
+        <div class="co-field"><label>Town / City *</label><input type="text" id="coCity" placeholder="Stowmarket" autocomplete="address-level2"><span class="field-error-msg" id="errCity">Please enter your town or city.</span></div>
+        <div class="co-field"><label>Postcode *</label><input type="text" id="coPost" placeholder="IP14 1AA" autocomplete="postal-code" maxlength="8"><span class="field-error-msg" id="errPost">Enter a valid UK postcode (e.g. IP14 1AA).</span></div>
+      </div>
+      <div class="co-row full">
+        <div class="co-field"><label>Delivery Note</label><textarea id="coNote" placeholder="Leave at door, ring bell, etc. (optional)"></textarea></div>
+      </div>
+
+      <div class="age-check">
+        <input type="checkbox" id="coAge">
+        <p><strong>Age Confirmation:</strong> By placing this order I confirm I am aged 18 or over. It is an offence to purchase alcohol for someone under 18. Challenge 25 may apply on delivery.</p>
+      </div>
+
+      <div class="terms-check">
+        <input type="checkbox" id="coTerms">
+        <p>I have read and agree to the <a onclick="openTermsModal()">Terms &amp; Conditions</a>, including the delivery, payment, and cancellation policy.</p>
+      </div>
+
+      <button class="btn-place-order" onclick="placeOrder()">
+        💷 Place Order — Pay on Delivery
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CART STATE ──
+let cart = []; // [{wine, qty}]
+
+function cartTotal() {
+  return cart.reduce((s, i) => s + i.wine.priceNum * i.qty, 0);
+}
+
+function cartCount() {
+  return cart.reduce((s, i) => s + i.qty, 0);
+}
+
+function updateCartBadge() {
+  document.getElementById('cartNavCount').textContent = cartCount();
+}
+
+function renderCartTooltip() {
+  const itemsEl = document.getElementById('cartTooltipItems');
+  if (!itemsEl) return;
+  if (cart.length === 0) {
+    itemsEl.innerHTML = '<div class="cart-tooltip-empty">Your cart is empty</div>';
+    return;
+  }
+  itemsEl.innerHTML =
+    cart.map(i => `
+      <div class="cart-tooltip-item">
+        <span class="cart-tooltip-item-name">${i.wine.name}</span>
+        <span class="cart-tooltip-item-qty">${i.qty}×</span>
+        <span style="color:rgba(255,255,255,0.6);flex-shrink:0;">£${(i.wine.priceNum*i.qty).toFixed(2)}</span>
+      </div>`).join('') +
+    `<div class="cart-tooltip-total"><span>Total</span><span>£${cartTotal().toFixed(2)}</span></div>`;
+}
+
+function addToCart(idx) {
+  const wine = wines[idx];
+  if (isOOS(wine.name)) return;
+  const existing = cart.find(i => i.wine.name === wine.name);
+  const inCart = existing ? existing.qty : 0;
+  if (inCart >= getWineStock(wine.name)) {
+    alert(`Sorry, only ${getWineStock(wine.name)} bottle${getWineStock(wine.name)===1?'':'s'} of ${wine.name} available.`);
+    return;
+  }
+  if (existing) existing.qty++;
+  else cart.push({ wine, qty: 1 });
+  updateCartBadge();
+  renderCart();
+  openCart();
+}
+
+function changeQty(name, delta) {
+  const item = cart.find(i => i.wine.name === name);
+  if (!item) return;
+  if (delta > 0) {
+    const available = getWineStock(name);
+    if (item.qty >= available) {
+      alert(`Sorry, only ${available} bottle${available===1?'':'s'} of ${name} available.`);
+      return;
+    }
+  }
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(i => i.wine.name !== name);
+  updateCartBadge();
+  renderCart();
+  if (cart.length === 0) document.getElementById('btnCheckout').disabled = true;
+}
+
+function renderCart() {
+  const body = document.getElementById('cartBody');
+  const total = cartTotal();
+  document.getElementById('cartSubtotal').textContent = '£' + total.toFixed(2);
+  document.getElementById('cartTotal').textContent = '£' + total.toFixed(2);
+  document.getElementById('btnCheckout').disabled = cart.length === 0;
+
+  if (cart.length === 0) {
+    body.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">🍷</div>Your cart is empty.<br>Browse our selection and add some bottles!</div>`;
+    return;
+  }
+
+  body.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      <div class="cart-item-img">
+        <img src="${item.wine.img}" alt="${item.wine.name}" onerror="this.style.display='none';this.parentElement.textContent='${item.wine.emoji}'">
+      </div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.wine.name}</div>
+        <div class="cart-item-price">${item.wine.price} each</div>
+        <div class="cart-item-qty">
+          <button class="qty-btn" onclick="changeQty('${item.wine.name.replace(/'/g,"\\'")}', -1)">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${item.wine.name.replace(/'/g,"\\'")}', 1)">+</button>
+        </div>
+      </div>
+      <div class="cart-item-total">£${(item.wine.priceNum * item.qty).toFixed(2)}</div>
+    </div>
+  `).join('');
+}
+
+function openCart() {
+  renderCart();
+  document.getElementById('cartOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCart() {
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleCartOverlayClick(e) {
+  if (e.target === document.getElementById('cartOverlay')) closeCart();
+}
+
+// ── CHECKOUT ──
+function openCheckout() {
+  closeCart();
+  // Build order summary
+  const summary = document.getElementById('coOrderSummary');
+  summary.innerHTML = `<div class="co-order-title">Order Summary</div>` +
+    cart.map(i => `<div class="co-order-item"><span>${i.qty}× ${i.wine.name}</span><span>£${(i.wine.priceNum*i.qty).toFixed(2)}</span></div>`).join('') +
+    `<div class="co-order-item total"><span>Total (Cash on Delivery)</span><span>£${cartTotal().toFixed(2)}</span></div>`;
+  document.getElementById('checkoutOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCheckout() {
+  document.getElementById('checkoutOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function placeOrder() {
+  const get = id => document.getElementById(id).value.trim();
+  const first = get('coFirst'), last = get('coLast'), email = get('coEmail'),
+        phone = get('coPhone'), addr1 = get('coAddr1'), city = get('coCity'), post = get('coPost');
+  const age = document.getElementById('coAge').checked;
+
+  // ── VALIDATORS ──
+  const ukPhoneRe = /^(\+44\s?|0)(7\d{3}|\d{2,4})[\s\-]?\d{3,4}[\s\-]?\d{3,4}$/;
+  const ukPostRe  = /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i;
+  const emailRe   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Address line must contain at least one digit (house/flat number)
+  const addr1Re   = /\d/;
+  // City must be letters only (with spaces/hyphens), min 2 chars
+  const cityRe    = /^[a-zA-Z\s\-']{2,}$/;
+
+  const setErr = (id, errId, condition) => {
+    const el = document.getElementById(id);
+    const msg = document.getElementById(errId);
+    const invalid = !condition;
+    el.classList.toggle('field-error', invalid);
+    if (msg) msg.classList.toggle('visible', invalid);
+    return invalid;
+  };
+
+  let hasError = false;
+  if (setErr('coFirst',  'errFirst', first.length >= 2 && /^[a-zA-Z\s\-']+$/.test(first)))  hasError = true;
+  if (setErr('coLast',   'errLast',  last.length  >= 2 && /^[a-zA-Z\s\-']+$/.test(last)))   hasError = true;
+  if (setErr('coEmail',  'errEmail', emailRe.test(email)))   hasError = true;
+  if (setErr('coPhone',  'errPhone', ukPhoneRe.test(phone))) hasError = true;
+  if (setErr('coAddr1',  'errAddr1', addr1.length >= 5 && addr1Re.test(addr1))) hasError = true;
+  if (setErr('coCity',   'errCity',  cityRe.test(city)))  hasError = true;
+  if (setErr('coPost',   'errPost',  ukPostRe.test(post))) hasError = true;
+
+  if (hasError) {
+    // Scroll to first error
+    const firstErr = document.querySelector('.co-field input.field-error');
+    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  if (!age) {
+    alert('Please confirm you are aged 18 or over to purchase alcohol.');
+    return;
+  }
+  if (!document.getElementById('coTerms').checked) {
+    alert('Please read and agree to the Terms & Conditions to place your order.');
+    return;
+  }
+
+  const orderNum = 'SPD-' + Date.now().toString().slice(-6);
+  const orderDate = new Date().toLocaleString('en-GB', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const total = cartTotal();
+
+  // Save to sales history
+  const orderRecord = {
+    orderNum, date: orderDate,
+    customer: `${first} ${last}`, email, phone,
+    address: `${addr1}${get('coAddr2') ? ', '+get('coAddr2') : ''}, ${city}, ${post}`,
+    items: cart.map(i => ({name: i.wine.name, qty: i.qty, price: i.wine.priceNum, total: i.wine.priceNum * i.qty})),
+    total
+  };
+  saveSalesHistory(orderRecord);
+
+  // Deduct stock for each item ordered
+  deductStockForOrder();
+
+  // Show receipt modal + confirmation page
+  showReceipt(orderRecord, first);
+  showConfirmationPage(orderRecord, first);
+
+  document.getElementById('coBody').innerHTML = `
+    <div class="order-confirmed">
+      <div class="order-confirmed-icon">✅</div>
+      <h2>Order Placed!</h2>
+      <div class="order-num">Order #${orderNum}</div>
+      <p>Thank you, ${first}! Your order has been received. We'll call you on <strong>${phone}</strong> to confirm your delivery time. Please have <strong>£${total.toFixed(2)}</strong> ready in cash.</p>
+      <button class="btn-continue" onclick="closeCheckout();cart=[];updateCartBadge();renderCart();">Continue Shopping</button>
+    </div>`;
+  cart = [];
+  updateCartBadge();
+}
+
+// ── ADMIN SYSTEM ──
+const ADMIN_KEY = 'stuarts_admin_mode';
+const ADMIN_STOCK_KEY = 'stuarts_stock';
+const ADMIN_USER = 'stuarts';
+const ADMIN_PASS = 'admin1234';
+const DEFAULT_STOCK = 5;
+
+function isAdmin() { return localStorage.getItem(ADMIN_KEY) === 'true'; }
+
+// Stock helpers — stored as {wineName: count}
+function getStock() {
+  try { return JSON.parse(localStorage.getItem(ADMIN_STOCK_KEY) || 'null') || {}; }
+  catch { return {}; }
+}
+function saveStock(obj) { localStorage.setItem(ADMIN_STOCK_KEY, JSON.stringify(obj)); }
+
+function getWineStock(wineName) {
+  const s = getStock();
+  return wineName in s ? s[wineName] : DEFAULT_STOCK;
+}
+
+function setWineStock(wineName, count) {
+  const s = getStock();
+  s[wineName] = Math.max(0, count);
+  saveStock(s);
+}
+
+function isOOS(wineName) { return getWineStock(wineName) <= 0; }
+
+// Deduct stock when order is placed
+function deductStockForOrder() {
+  cart.forEach(item => {
+    const current = getWineStock(item.wine.name);
+    setWineStock(item.wine.name, current - item.qty);
+  });
+}
+
+function applyAdminUI() {
+  if (isAdmin()) {
+    document.body.classList.add('admin-mode');
+    openStockManager();
+  } else {
+    document.body.classList.remove('admin-mode');
+    document.getElementById('stockManagerOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  renderGrid();
+}
+
+function openStockManager() {
+  renderStockManager();
+  document.getElementById('stockManagerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderStockManager() {
+  const grid = document.getElementById('smGrid');
+  const summary = document.getElementById('smStockSummary');
+  let inCount = 0, oosCount = 0;
+
+  grid.innerHTML = wines.map((w, idx) => {
+    const stock = getWineStock(w.name);
+    const oos = stock <= 0;
+    if (oos) oosCount++; else inCount++;
+    const escapedName = w.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `
+    <div class="sm-card${oos ? ' oos' : ''}">
+      <div class="sm-card-img">
+        <img src="${w.img}" alt="${w.name}"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sm-emoji" style="display:none">${w.emoji}</div>
+        ${oos ? '<span class="sm-oos-badge">OUT OF STOCK</span>' : ''}
+      </div>
+      <div class="sm-card-name">${w.name}</div>
+      <div class="sm-card-sub">${w.region} · ${w.price}</div>
+      <div class="sm-card-status">
+        <span class="sm-status-label ${oos ? 'out' : 'in'}">${oos ? 'Out of stock' : 'In stock'}</span>
+        <label class="sm-toggle">
+          <input type="checkbox" ${oos ? '' : 'checked'} onchange="toggleStockFromManager(${idx}, this.checked)">
+          <span class="sm-toggle-slider"></span>
+        </label>
+      </div>
+      <div class="sm-stock-row">
+        <button class="sm-qty-btn" onclick="smAdjust(${idx}, -1)">−</button>
+        <input class="sm-qty-input" type="number" min="0" value="${stock}"
+          onchange="smSetQty(${idx}, this)"
+          onclick="event.stopPropagation()">
+        <button class="sm-qty-btn" onclick="smAdjust(${idx}, 1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  summary.innerHTML = `<strong>${inCount}</strong> in stock &nbsp;&middot;&nbsp; <strong>${oosCount}</strong> out of stock`;
+}
+
+function toggleStockFromManager(idx, isInStock) {
+  const wine = wines[idx];
+  setWineStock(wine.name, isInStock ? 5 : 0);
+  renderStockManager();
+  renderGrid();
+}
+
+function smAdjust(idx, delta) {
+  const wine = wines[idx];
+  const current = getWineStock(wine.name);
+  const newVal = Math.max(0, current + delta);
+  setWineStock(wine.name, newVal);
+  renderStockManager();
+  renderGrid();
+}
+
+function smSetQty(idx, inputEl) {
+  const val = parseInt(inputEl.value);
+  if (isNaN(val) || val < 0) { inputEl.value = getWineStock(wines[idx].name); return; }
+  setWineStock(wines[idx].name, val);
+  // Auto out-of-stock when hits 0 — re-render handles it
+  renderStockManager();
+  renderGrid();
+}
+
+// Key combo: Ctrl + Shift + S
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+    e.preventDefault();
+    if (isAdmin()) {
+      adminLogout();
+    } else {
+      openAdminLogin();
+    }
+  }
+});
+
+function openAdminLogin() {
+  document.getElementById('adminLoginOverlay').classList.add('open');
+  document.getElementById('adminUser').value = '';
+  document.getElementById('adminPass').value = '';
+  document.getElementById('adminError').classList.remove('visible');
+  setTimeout(() => document.getElementById('adminUser').focus(), 100);
+}
+function closeAdminLogin() {
+  document.getElementById('adminLoginOverlay').classList.remove('open');
+}
+
+function doAdminLogin() {
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    localStorage.setItem(ADMIN_KEY, 'true');
+    closeAdminLogin();
+    applyAdminUI();
+  } else {
+    document.getElementById('adminError').classList.add('visible');
+    document.getElementById('adminPass').value = '';
+    document.getElementById('adminPass').focus();
+  }
+}
+
+function adminLogout() {
+  localStorage.removeItem(ADMIN_KEY);
+  document.getElementById('stockManagerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  applyAdminUI();
+}
+
+function updateStock(wineName, delta) {
+  const current = getWineStock(wineName);
+  setWineStock(wineName, current + delta);
+  renderGrid();
+  document.querySelectorAll('.admin-card-controls').forEach(el => {
+    el.style.display = isAdmin() ? 'flex' : 'none';
+  });
+}
+
+function setStockInput(wineName, inputEl) {
+  const val = parseInt(inputEl.value);
+  if (isNaN(val) || val < 0) return;
+  setWineStock(wineName, val);
+  renderGrid();
+  document.querySelectorAll('.admin-card-controls').forEach(el => {
+    el.style.display = isAdmin() ? 'flex' : 'none';
+  });
+}
+
+// Apply on load
+localStorage.removeItem('stuarts_admin_mode');
+document.addEventListener('DOMContentLoaded', applyAdminUI);
+
+// wines array and shop logic follow below in the same script block
+
+const wines = [
+  { name:"Trivento Reserve Malbec", region:"Mendoza, Argentina", vintage:2022, type:"Red", price:"£7.50", priceNum:7.50, rating:4, grape:"Malbec", abv:"13.5%", serve:"16–17 °C", emoji:"🍷", sale:true, img:"Wine Images/trivento-reserve-malbec.jpeg", desc:"A lush, fruit-forward Malbec from Argentina's most celebrated wine region. Plum, blackberry, and violet on the nose, with smooth tannins and a generous finish. Exceptional value." },
+  { name:"Prosecco Vino Spumante", region:"Veneto, Italy", vintage:2023, type:"Sparkling", price:"£9.99", priceNum:9.99, rating:4, grape:"Glera", abv:"11.0%", serve:"6–8 °C", emoji:"🍾", sale:false, img:"Wine Images/prosecco-vino-spumante.jpeg", desc:"Light, fresh, and irresistibly bubbly. Green apple and white pear on the nose with delicate floral notes. Creamy mousse and a clean, crisp finish. Perfect as an aperitivo or celebration toast." },
+  { name:"Trivento Reserve Malbec Rosé", region:"Mendoza, Argentina", vintage:2023, type:"Rosé", price:"£9.99", priceNum:9.99, rating:4, grape:"Malbec", abv:"12.5%", serve:"8–10 °C", emoji:"🌸", sale:false, img:"Wine Images/trivento-reserve-malbec.jpeg", desc:"A gorgeous Malbec rosé showing bright salmon in the glass. Strawberry, raspberry, and rose petal aromas with a fresh, dry palate and clean finish. Wonderfully versatile." },
+  { name:"Trivento Reserve Pinot Grigio", region:"Mendoza, Argentina", vintage:2023, type:"White", price:"£9.99", priceNum:9.99, rating:4, grape:"Pinot Grigio", abv:"12.5%", serve:"8–10 °C", emoji:"🥂", sale:false, img:"Wine Images/trivento-reserve-pinot-grigio.jpeg", desc:"Crisp and refreshing with citrus blossom, pear, and a subtle mineral edge. Light-bodied with lively acidity and a clean, elegant finish. A crowd-pleasing white for any occasion." },
+  { name:"Penfolds Koonunga Hill Chardonnay", region:"South Australia", vintage:2022, type:"White", price:"£10.99", priceNum:10.99, rating:4, grape:"Chardonnay", abv:"13.0%", serve:"10–12 °C", emoji:"🥂", sale:false, img:"Wine Images/penfolds-koonuga-hill-chardonnay.jpeg", desc:"From the iconic Penfolds stable, this Chardonnay shows melon, peach, and subtle oak spice. Well-balanced with a creamy mid-palate and a long, satisfying finish." },
+  { name:"Greasy Fingers Luscious Red", region:"South Eastern Australia", vintage:2022, type:"Red", price:"£9.49", priceNum:9.49, rating:3, grape:"Shiraz blend", abv:"13.5%", serve:"16–17 °C", emoji:"🍷", sale:true, img:"Wine Images/greasy-fingers-luscious-red.jpeg", desc:"Bold and unapologetically fruity, this Aussie red delivers dark cherry, plum jam, and a hint of mocha. Soft tannins and a crowd-pleasing, easy-drinking style." },
+  { name:"Graham Norton's Sauvignon Blanc", region:"Marlborough, New Zealand", vintage:2023, type:"White", price:"£9.99", priceNum:9.99, rating:4, grape:"Sauvignon Blanc", abv:"12.5%", serve:"8–10 °C", emoji:"🥂", sale:false, img:"Wine Images/graham-norton-sauvignon-blanc.jpeg", desc:"Zesty and aromatic, packed with passion fruit, cut grass, and grapefruit zest. A classic Marlborough Sauvignon from a fun, accessible range. Refreshing and endlessly drinkable." },
+  { name:"Campo Viejo Rioja Garnacha", region:"Rioja, Spain", vintage:2021, type:"Red", price:"£10.99", priceNum:10.99, rating:4, grape:"Garnacha", abv:"13.5%", serve:"15–17 °C", emoji:"🍷", sale:false, img:"Wine Images/campo-viejo-rioja-garnacha.jpeg", desc:"A vibrant, youthful Rioja from Campo Viejo's celebrated range. Fresh red cherry, raspberry, and floral aromas with a light, silky palate. Juicy and approachable." },
+  { name:"Casillero del Diablo Pinot Grigio", region:"Central Valley, Chile", vintage:2023, type:"White", price:"£9.99", priceNum:9.99, rating:4, grape:"Pinot Grigio", abv:"12.5%", serve:"8–10 °C", emoji:"🥂", sale:false, img:"Wine Images/casillero-del-diablo-pinot-grigio.jpeg", desc:"The Devil's Collection delivers crisp white peach, lemon, and floral notes with bright acidity. Light, refreshing, and impeccably clean." },
+  { name:"Casillero del Diablo Merlot", region:"Central Valley, Chile", vintage:2022, type:"Red", price:"£9.99", priceNum:9.99, rating:4, grape:"Merlot", abv:"13.5%", serve:"15–17 °C", emoji:"🍷", sale:false, img:"Wine Images/casillero-del-diablo-merlot.jpeg", desc:"Smooth, round, and generous with dark plum, cherry, and a whisper of chocolate. Soft tannins make this instantly drinkable. Punches well above its price point." },
+  { name:"Casillero del Diablo Malbec", region:"Central Valley, Chile", vintage:2022, type:"Red", price:"£9.99", priceNum:9.99, rating:4, grape:"Malbec", abv:"13.5%", serve:"16–17 °C", emoji:"🍷", sale:false, img:"Wine Images/casillero-del-diablo-malbec.jpeg", desc:"Rich blackberry and violet on the nose with a warm, plush palate and a touch of sweet spice. Velvety tannins and a long finish. An outstanding Chilean Malbec." },
+  { name:"McGuigan Black Label Pinot Grigio", region:"South Eastern Australia", vintage:2023, type:"White", price:"£5.99", priceNum:5.99, rating:3, grape:"Pinot Grigio", abv:"11.5%", serve:"8–10 °C", emoji:"🥂", sale:true, img:"Wine Images/mcguigan_black_label_pinot_grigio.jpeg", desc:"Light, fresh, and easy-drinking. Apple blossom and citrus with a clean, refreshing finish. An excellent everyday white at an unbeatable price." },
+  { name:"McGuigan Black Label Red", region:"South Eastern Australia", vintage:2022, type:"Red", price:"£5.99", priceNum:5.99, rating:3, grape:"Cabernet Sauvignon blend", abv:"13.5%", serve:"15–17 °C", emoji:"🍷", sale:true, img:"Wine Images/mcguigan_black_label_red.jpeg", desc:"Soft red berry fruit with a touch of vanilla and light oak. Smooth and easy on the palate. A great value everyday red that works with a wide range of food." },
+  { name:"McGuigan Deep Red Lot 92", region:"South Eastern Australia", vintage:2022, type:"Red", price:"£5.50", priceNum:5.50, rating:3, grape:"Shiraz, Cabernet", abv:"13.5%", serve:"15–17 °C", emoji:"🍷", sale:true, img:"Wine Images/mcguigan_deep_red_lot_92.jpeg", desc:"Dark, brooding, and full-bodied with ripe plum, blackberry, and a hint of spice. Generous fruit on the palate with a soft, warming finish. Outstanding value." },
+  { name:"McGuigan Chardonnay Lot 92", region:"South Eastern Australia", vintage:2022, type:"White", price:"£5.50", priceNum:5.50, rating:3, grape:"Chardonnay", abv:"12.5%", serve:"8–10 °C", emoji:"🥂", sale:true, img:"Wine Images/mcguigan_chardonnay_lot_92.jpeg", desc:"Fresh melon and white peach with a touch of creamy texture. Medium-bodied and balanced. An incredibly affordable everyday white from one of Australia's most trusted brands." },
+  { name:"Freixenet Italian Rosé", region:"Veneto, Italy", vintage:null, type:"Rosé", price:"£11.50", priceNum:11.50, rating:4, grape:"Pinot Grigio Rosé", abv:"11.5%", serve:"6–8 °C", emoji:"🍾", sale:false, img:"Wine Images/freixenet_italian_rose.jpeg", desc:"A sparkling rosé from Freixenet's Italian range — delicate salmon pink with fine persistent bubbles. Fresh strawberry and white peach aromas with a light, refreshing palate." },
+  { name:"Magnum Tonic Wine", region:"Jamaica", vintage:null, type:"Fortified", price:"£4.20", priceNum:4.20, rating:3, grape:"Fortified Wine", abv:"16.5%", serve:"Chilled", emoji:"🫙", sale:false, img:"Wine Images/magnum_tonic_wine.jpeg", desc:"A legendary Caribbean tonic wine with a warming, sweet character. Deep ruby colour with a rich, fortified sweetness balanced by herbal tonic notes. An icon of its category." },
+  { name:"Trivento Private Reserve Malbec", region:"Mendoza, Argentina", vintage:2021, type:"Red", price:"£10.99", priceNum:10.99, rating:5, grape:"Malbec", abv:"14.0%", serve:"16–18 °C", emoji:"🍷", sale:true, img:"Wine Images/trivento-private-reserve-malbec.jpeg", desc:"A step up from the Reserve, this Private Reserve shows real complexity. Dark fruit, leather, and oak spice with structured tannins and a long, elegant finish. Excellent value for a premium Malbec." },
+  { name:"Wise Wolf Cabernet Sauvignon", region:"Languedoc, France", vintage:2022, type:"Red", price:"£9.99", priceNum:9.99, rating:4, grape:"Cabernet Sauvignon", abv:"13.5%", serve:"16–17 °C", emoji:"🍷", sale:false, img:"Wine Images/wise-wolf-cabernet-sauvigon.jpeg", desc:"From the sun-soaked Languedoc, bold and satisfying. Blackcurrant, cedar, and a touch of dried herbs with firm but friendly tannins and a clean, dry finish." },
+  { name:"Plaza Centro Prosecco D.O.C.", region:"Treviso, Italy", vintage:2023, type:"Sparkling", price:"£8.99", priceNum:8.99, rating:3, grape:"Glera", abv:"11.0%", serve:"6–8 °C", emoji:"🍾", sale:false, img:"Wine Images/plaza-centro-prosecco-doc.jpeg", desc:"A classic DOC Prosecco with delicate fizz and fresh pear, green apple, and white blossom aromas. Light, crisp, and easy-going. Ideal for aperitivo hour or any celebration." }
+];
+
+let currentFilter = 'all';
+let currentSort = 'featured';
+let currentPage = 1;
+let currentSearch = '';
+const ITEMS_PER_PAGE = 16;
+
+function handleSearch(val) {
+  currentSearch = val.trim().toLowerCase();
+  document.getElementById('searchClear').classList.toggle('visible', currentSearch.length > 0);
+  currentPage = 1;
+  renderGrid();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  handleSearch('');
+}
+
+function stars(n){ return '★'.repeat(n)+'☆'.repeat(5-n); }
+
+function getFilteredSorted() {
+  let list = currentFilter === 'all' ? [...wines] : wines.filter(w => w.type === currentFilter);
+  if (currentSearch) {
+    list = list.filter(w =>
+      w.name.toLowerCase().includes(currentSearch) ||
+      w.region.toLowerCase().includes(currentSearch) ||
+      w.grape.toLowerCase().includes(currentSearch) ||
+      w.type.toLowerCase().includes(currentSearch) ||
+      (w.vintage && String(w.vintage).includes(currentSearch))
+    );
+  }
+  switch(currentSort) {
+    case 'best-selling':  list.sort((a,b) => b.rating - a.rating); break;
+    case 'alpha-az':      list.sort((a,b) => a.name.localeCompare(b.name)); break;
+    case 'alpha-za':      list.sort((a,b) => b.name.localeCompare(a.name)); break;
+    case 'price-asc':     list.sort((a,b) => a.priceNum - b.priceNum); break;
+    case 'price-desc':    list.sort((a,b) => b.priceNum - a.priceNum); break;
+    case 'vintage-new':   list.sort((a,b) => (b.vintage||0) - (a.vintage||0)); break;
+    case 'vintage-old':   list.sort((a,b) => (a.vintage||9999) - (b.vintage||9999)); break;
+  }
+  return list;
+}
+
+function renderGrid() {
+  const list = getFilteredSorted();
+  const total = list.length;
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+  if(currentPage > totalPages) currentPage = 1;
+
+  const start = (currentPage - 1) * ITEMS_PER_PAGE;
+  const pageItems = list.slice(start, start + ITEMS_PER_PAGE);
+
+  const oos = { has: (name) => isOOS(name) };
+  document.getElementById('wineGrid').innerHTML = pageItems.map(w => {
+    const idx = wines.indexOf(w);
+    const stock = getWineStock(w.name);
+    const outOfStock = stock <= 0;
+    const lowStock = stock > 0 && stock <= 2;
+    const escapedName = w.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    return `
+    <div class="wine-card${outOfStock ? ' out-of-stock' : ''}">
+      <div class="wine-card-img bg-${w.type}" onclick="openModal(${idx})" style="cursor:pointer;">
+        <span class="wine-badge badge-${w.type}">${w.type}</span>
+        ${w.sale ? '<span class="sale-badge">Sale</span>' : ''}
+        ${outOfStock ? '<span class="oos-badge">Out of Stock</span>' : ''}
+        <img src="${w.img}" alt="${w.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="emoji-fallback" style="display:none">${w.emoji}</div>
+      </div>
+      <div class="wine-card-body">
+        <div class="wine-region">${w.region}</div>
+        <div class="wine-name" onclick="openModal(${idx})" style="cursor:pointer;">${w.name}</div>
+        <div class="wine-vintage">${w.vintage ? w.vintage+' Vintage' : 'Non-Vintage'} · ${w.grape}</div>
+        <div class="wine-footer">
+          <span class="wine-price">${w.price}</span>
+          <span class="wine-rating">${stars(w.rating)}</span>
+        </div>
+        ${!outOfStock && lowStock ? `<div style="font-size:0.68rem;color:#c0392b;font-weight:600;margin-top:0.3rem;">⚠ Only ${stock} left</div>` : ''}
+        <button class="add-to-cart-btn" onclick="addToCart(${idx})" ${outOfStock ? 'disabled' : ''}>
+          ${outOfStock ? '✕ Out of Stock' : '🛒 Add to Cart'}
+        </button>
+        <div class="admin-only admin-card-controls" style="display:none;">
+          <div style="width:100%;font-size:0.65rem;color:#c0392b;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.3rem;">
+            Stock: ${stock} bottle${stock===1?'':'s'}
+          </div>
+          <div style="display:flex;align-items:center;gap:0.4rem;width:100%;">
+            <button class="admin-toggle-btn mark-oos" style="width:28px;padding:0.3rem;" onclick="updateStock('${escapedName}', -1)">−</button>
+            <input type="number" value="${stock}" min="0" style="flex:1;text-align:center;border:1px solid var(--border);border-radius:3px;padding:0.3rem;font-family:'Jost',sans-serif;font-size:0.82rem;color:var(--ink);background:var(--white);" onchange="setStockInput('${escapedName}', this)" onclick="event.stopPropagation()">
+            <button class="admin-toggle-btn mark-in" style="width:28px;padding:0.3rem;" onclick="updateStock('${escapedName}', 1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('sectionHeading').textContent =
+    currentFilter === 'all' ? 'Our Current Selection' : currentFilter + ' Wines';
+
+  renderPagination(total, totalPages);
+
+  // Show admin card controls if in admin mode
+  document.querySelectorAll('.admin-card-controls').forEach(el => {
+    el.style.display = isAdmin() ? 'flex' : 'none';
+  });
+}
+
+function renderPagination(total, totalPages) {
+  const ctrl = document.getElementById('paginationControls');
+  const countEl = document.getElementById('resultsCount');
+  const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const end = Math.min(currentPage * ITEMS_PER_PAGE, total);
+  countEl.textContent = `Showing ${start}–${end} of ${total} Results`;
+
+  if(totalPages <= 1) { ctrl.innerHTML = ''; return; }
+
+  let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>«</button>`;
+
+  const pages = [];
+  if(totalPages <= 5) {
+    for(let i=1;i<=totalPages;i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if(currentPage > 3) pages.push('...');
+    for(let i=Math.max(2,currentPage-1); i<=Math.min(totalPages-1,currentPage+1); i++) pages.push(i);
+    if(currentPage < totalPages-2) pages.push('...');
+    pages.push(totalPages);
+  }
+
+  pages.forEach(p => {
+    if(p==='...') html += `<button class="page-btn ellipsis" disabled>…</button>`;
+    else html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  });
+
+  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>»</button>`;
+  ctrl.innerHTML = html;
+}
+
+function goPage(p) {
+  const totalPages = Math.ceil(getFilteredSorted().length / ITEMS_PER_PAGE);
+  if(p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderGrid();
+  document.querySelector('.shop-section').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function setFilter(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = type;
+  currentPage = 1;
+  renderGrid();
+}
+
+function toggleSort() {
+  document.getElementById('sortBtn').classList.toggle('open');
+  document.getElementById('sortDropdown').classList.toggle('open');
+}
+
+function applySort(key, label, btn) {
+  currentSort = key; currentPage = 1;
+  document.getElementById('sortLabel').textContent = label;
+  document.querySelectorAll('.sort-option').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  toggleSort();
+  renderGrid();
+}
+
+document.addEventListener('click', function(e) {
+  if(!document.getElementById('sortWrapper').contains(e.target)) {
+    document.getElementById('sortBtn').classList.remove('open');
+    document.getElementById('sortDropdown').classList.remove('open');
+  }
+});
+
+function openModal(idx) {
+  const w = wines[idx];
+  document.getElementById('mBottleWrap').innerHTML = `
+    <img class="modal-bottle" src="${w.img}" alt="${w.name}"
+      onclick="openBottleZoom('${w.img.replace(/'/g,"\\'")}', '${w.name.replace(/'/g,"\\'")}'); event.stopPropagation();"
+      title="Click to zoom"
+      onerror="this.style.display='none';document.getElementById('mEmojiModal').style.display='block'">
+    <div class="modal-bottle-fallback" id="mEmojiModal" style="display:none">${w.emoji}</div>`;
+  document.getElementById('mPrice').textContent = w.price;
+  document.getElementById('mVintageTag').textContent = (w.vintage ? w.vintage+' Vintage · ' : 'Non-Vintage · ') + w.type;
+  document.getElementById('mRegion').textContent = w.region;
+  document.getElementById('mName').textContent = w.name;
+  document.getElementById('mStars').textContent = stars(w.rating);
+  document.getElementById('mType').textContent = w.type+' Wine · '+w.grape;
+  document.getElementById('mDesc').textContent = w.desc;
+  document.getElementById('mSpecs').innerHTML = `
+    <div class="spec-item"><span class="spec-label">Vintage</span><span class="spec-value">${w.vintage||'NV'}</span></div>
+    <div class="spec-item"><span class="spec-label">ABV</span><span class="spec-value">${w.abv||'—'}</span></div>
+    <div class="spec-item"><span class="spec-label">Grape</span><span class="spec-value">${w.grape}</span></div>
+    <div class="spec-item"><span class="spec-label">Serve at</span><span class="spec-value">${w.serve||'—'}</span></div>`;
+
+  // Inject qty + add-to-cart controls
+  const existing = document.getElementById('modalCartControls');
+  if (existing) existing.remove();
+  const controls = document.createElement('div');
+  controls.id = 'modalCartControls';
+  controls.style.cssText = 'margin-top:0.8rem;display:flex;gap:0.6rem;align-items:center;';
+  controls.innerHTML = `
+    <div style="display:flex;align-items:center;gap:0.4rem;border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.4rem;background:var(--pale);">
+      <button onclick="document.getElementById('modalQty').stepDown()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);padding:0 4px;">−</button>
+      <input id="modalQty" type="number" value="1" min="1" max="${getWineStock(w.name)}" style="width:36px;text-align:center;border:none;background:transparent;font-family:'Jost',sans-serif;font-size:0.9rem;font-weight:600;color:var(--ink);outline:none;">
+      <button onclick="const q=document.getElementById('modalQty');const mx=parseInt(q.max);if(parseInt(q.value)<mx)q.stepUp();" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);padding:0 4px;">+</button>
+    </div>
+    <button onclick="addToCartQty(${idx}, parseInt(document.getElementById('modalQty').value)||1)" class="modal-add-cart-btn" style="flex:1;">🛒 Add to Cart</button>`;
+  document.getElementById('mSpecs').insertAdjacentElement('afterend', controls);
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e){ if(e.target===document.getElementById('modalOverlay')) closeModalDirect(); }
+function closeModalDirect(){ document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow=''; }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModalDirect(); });
+
+function addToCartQty(idx, qty) {
+  const wine = wines[idx];
+  if (isOOS(wine.name)) return;
+  const existing = cart.find(i => i.wine.name === wine.name);
+  const inCart = existing ? existing.qty : 0;
+  const available = getWineStock(wine.name);
+  const toAdd = Math.min(qty, available - inCart);
+  if (toAdd <= 0) {
+    alert(`Sorry, only ${available} bottle${available===1?'':'s'} of ${wine.name} available.`);
+    return;
+  }
+  if (existing) existing.qty += toAdd;
+  else cart.push({ wine, qty: toAdd });
+  updateCartBadge();
+  renderCart();
+  closeModalDirect();
+  openCart();
+}
+
+applyAdminUI();
+
+// ── DARK MODE ──
+// ── MOBILE MENU ──
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobileMenu');
+  const burger = document.getElementById('hamburger');
+  menu.classList.toggle('open');
+  burger.classList.toggle('open');
+}
+function closeMobileMenu() {
+  document.getElementById('mobileMenu').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('mobileMenu');
+  const burger = document.getElementById('hamburger');
+  if (menu && menu.classList.contains('open') && !menu.contains(e.target) && burger && !burger.contains(e.target)) {
+    closeMobileMenu();
+  }
+});
+
+// ── ON SALE FILTER ──
+let saleOnly = false;
+function toggleSaleFilter(btn) {
+  saleOnly = !saleOnly;
+  if (saleOnly) {
+    btn.style.background = '#c0392b';
+    btn.style.color = '#fff';
+    btn.style.borderColor = '#c0392b';
+    btn.style.boxShadow = '0 4px 12px rgba(192,57,43,0.35)';
+  } else {
+    btn.style.background = '';
+    btn.style.color = '#c0392b';
+    btn.style.borderColor = '#c0392b';
+    btn.style.boxShadow = '';
+  }
+  currentPage = 1;
+  renderGrid();
+}
+
+// Patch getFilteredSorted to support price range and sale filter
+const _origGetFilteredSorted = getFilteredSorted;
+window.getFilteredSorted = function() {
+  let list = _origGetFilteredSorted();
+  if (saleOnly) list = list.filter(w => w.sale);
+  return list;
+};
+
+// ── BOTTLE ZOOM ──
+function openBottleZoom(src, alt) {
+  const overlay = document.getElementById('bottleZoomOverlay');
+  const img = document.getElementById('bottleZoomImg');
+  img.src = src; img.alt = alt;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeBottleZoom() {
+  document.getElementById('bottleZoomOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── SALES HISTORY ──
+const SALES_HISTORY_KEY = 'stuarts_sales_history';
+function getSalesHistory() {
+  try { return JSON.parse(localStorage.getItem(SALES_HISTORY_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveSalesHistory(order) {
+  const history = getSalesHistory();
+  history.unshift(order);
+  if (history.length > 100) history.pop();
+  localStorage.setItem(SALES_HISTORY_KEY, JSON.stringify(history));
+}
+
+// ── RECEIPT ──
+function showReceipt(order, firstName) {
+  const body = document.getElementById('receiptBody');
+  body.innerHTML = `
+    <div class="receipt-logo">
+      <h2>🍷 Stuarts Premier Daily</h2>
+      <p>2 Creeting Rd W, Stowmarket, IP14 5AU &nbsp;·&nbsp; Tel: 01449 612259</p>
+    </div>
+    <div class="receipt-meta">
+      <div class="receipt-meta-item"><span class="receipt-meta-label">Order Number</span><span class="receipt-meta-value">#${order.orderNum}</span></div>
+      <div class="receipt-meta-item"><span class="receipt-meta-label">Date &amp; Time</span><span class="receipt-meta-value">${order.date}</span></div>
+      <div class="receipt-meta-item"><span class="receipt-meta-label">Customer</span><span class="receipt-meta-value">${order.customer}</span></div>
+      <div class="receipt-meta-item"><span class="receipt-meta-label">Phone</span><span class="receipt-meta-value">${order.phone}</span></div>
+      <div class="receipt-meta-item" style="grid-column:1/-1"><span class="receipt-meta-label">Delivery Address</span><span class="receipt-meta-value">${order.address}</span></div>
+    </div>
+    <table class="receipt-items">
+      <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        ${order.items.map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>£${i.price.toFixed(2)}</td><td style="text-align:right">£${i.total.toFixed(2)}</td></tr>`).join('')}
+        <tr class="receipt-total-row"><td colspan="3"><strong>Total (incl. VAT)</strong></td><td style="text-align:right"><strong>£${order.total.toFixed(2)}</strong></td></tr>
+      </tbody>
+    </table>
+    <div class="receipt-footer-note">
+      Payment method: <strong>Cash on Delivery</strong><br>
+      Please have <strong>£${order.total.toFixed(2)}</strong> ready in cash when your order arrives.<br>
+      Thank you for shopping with Stuarts Premier Daily! 🍷
+    </div>
+    <button class="btn-print" onclick="downloadReceiptPDF('${order.orderNum}')">⬇️ Download Receipt PDF</button>
+  `;
+  document.getElementById('receiptOverlay').classList.add('open');
+}
+function downloadReceiptPDF(orderNum) {
+  const element = document.getElementById('receiptBody');
+  const btn = element.querySelector('.btn-print');
+  if (btn) btn.style.display = 'none';
+
+  const opt = {
+    margin:       [10, 10, 10, 10],
+    filename:     `stuarts-receipt-${orderNum}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#faf8fc' },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    if (btn) btn.style.display = '';
+  });
+}
+
+function closeReceipt() {
+  document.getElementById('receiptOverlay').classList.remove('open');
+}
+
+// ── STOCK MANAGER — TABBED WITH HISTORY, LOW STOCK, BULK RESET ──
+function renderStockManagerWithTabs() {
+  const overlay = document.getElementById('stockManagerOverlay');
+  overlay.innerHTML = `
+    <div class="sm-header">
+      <div class="sm-header-left">
+        <span style="font-size:1.1rem;">⚙</span>
+        <span class="sm-header-title">Stock Manager</span>
+        <span class="sm-header-badge">ADMIN</span>
+        <span class="sm-stock-summary" id="smStockSummary"></span>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <button class="btn-bulk-reset" onclick="bulkResetStock()">↺ Reset All Stock</button>
+        <button class="sm-exit-btn" onclick="adminLogout()">EXIT ADMIN</button>
+      </div>
+    </div>
+    <div class="sm-tabs">
+      <button class="sm-tab active" id="tabStock" onclick="switchSmTab('stock')">📦 Stock</button>
+      <button class="sm-tab" id="tabHistory" onclick="switchSmTab('history')">📋 Sales History</button>
+    </div>
+    <div class="sm-panel active" id="panelStock"></div>
+    <div class="sm-panel" id="panelHistory"></div>
+  `;
+  renderStockPanel();
+  renderHistoryPanel();
+}
+
+function switchSmTab(tab) {
+  document.getElementById('tabStock').classList.toggle('active', tab === 'stock');
+  document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+  document.getElementById('panelStock').classList.toggle('active', tab === 'stock');
+  document.getElementById('panelHistory').classList.toggle('active', tab === 'history');
+}
+
+function renderStockPanel() {
+  const panel = document.getElementById('panelStock');
+  if (!panel) return;
+  const summaryEl = document.getElementById('smStockSummary');
+  let inCount = 0, oosCount = 0, lowStockWines = [];
+
+  const cards = wines.map((w, idx) => {
+    const stock = getWineStock(w.name);
+    const oos = stock <= 0;
+    const low = stock > 0 && stock <= 2;
+    if (oos) oosCount++; else inCount++;
+    if (low) lowStockWines.push({name: w.name, stock});
+    return `
+    <div class="sm-card${oos ? ' oos' : ''}">
+      <div class="sm-card-img">
+        <img src="${w.img}" alt="${w.name}"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sm-emoji" style="display:none">${w.emoji}</div>
+        ${oos ? '<span class="sm-oos-badge">OUT OF STOCK</span>' : ''}
+      </div>
+      <div class="sm-card-name">${w.name}</div>
+      <div class="sm-card-sub">${w.region} · ${w.price}</div>
+      <div class="sm-card-status">
+        <span class="sm-status-label ${oos ? 'out' : 'in'}" ${low && !oos ? 'style="color:#e67e22;"' : ''}>${oos ? 'Out of stock' : (low ? '⚠ Low stock' : 'In stock')}</span>
+        <label class="sm-toggle">
+          <input type="checkbox" ${oos ? '' : 'checked'} onchange="toggleStockFromManager(${idx}, this.checked)">
+          <span class="sm-toggle-slider"></span>
+        </label>
+      </div>
+      <div class="sm-stock-row">
+        <button class="sm-qty-btn" onclick="smAdjust(${idx}, -1)">−</button>
+        <input class="sm-qty-input" type="number" min="0" value="${stock}"
+          onchange="smSetQty(${idx}, this)" onclick="event.stopPropagation()">
+        <button class="sm-qty-btn" onclick="smAdjust(${idx}, 1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  let lowAlert = '';
+  if (lowStockWines.length > 0) {
+    lowAlert = `<div class="low-stock-alert" style="margin:1.5rem 2rem 0;">
+      <div class="low-stock-alert-title">⚠️ Low Stock Warning — ${lowStockWines.length} wine${lowStockWines.length>1?'s':''} running low</div>
+      ${lowStockWines.map(w => `<div class="low-stock-item"><span>${w.name}</span><span class="low-stock-count">${w.stock} bottle${w.stock===1?'':'s'} left</span></div>`).join('')}
+    </div>`;
+  }
+
+  panel.innerHTML = lowAlert + `<div class="sm-grid">${cards}</div>`;
+  if (summaryEl) summaryEl.innerHTML = `<strong>${inCount}</strong> in stock &nbsp;&middot;&nbsp; <strong>${oosCount}</strong> out of stock`;
+}
+
+function renderHistoryPanel() {
+  const panel = document.getElementById('panelHistory');
+  if (!panel) return;
+  const history = getSalesHistory();
+  if (history.length === 0) {
+    panel.innerHTML = '<div class="history-empty">📋 No orders yet.<br>Orders placed through the shop will appear here.</div>';
+    return;
+  }
+  panel.innerHTML = `
+    <div style="overflow-x:auto;padding:1.5rem 2rem;">
+    <table class="history-table">
+      <thead><tr><th>Order #</th><th>Date</th><th>Customer</th><th>Phone</th><th>Items</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        ${history.map(o => `
+          <tr>
+            <td><strong>${o.orderNum}</strong></td>
+            <td style="white-space:nowrap">${o.date}</td>
+            <td>${o.customer}<br><span style="font-size:0.7rem;color:var(--muted)">${o.email||''}</span></td>
+            <td>${o.phone}</td>
+            <td style="max-width:220px">${o.items.map(i => `${i.qty}× ${i.name}`).join('<br>')}</td>
+            <td style="text-align:right;font-weight:700;white-space:nowrap">£${o.total.toFixed(2)}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:1rem;font-size:0.72rem;color:var(--muted);">Showing ${history.length} order${history.length>1?'s':''} · Stored locally in this browser</div>
+    </div>
+  `;
+}
+
+function bulkResetStock() {
+  if (!confirm('Reset ALL wines back to 5 bottles each?')) return;
+  const s = {};
+  wines.forEach(w => s[w.name] = 5);
+  saveStock(s);
+  renderStockPanel();
+  renderGrid();
+}
+
+// Override openStockManager and renderStockManager to use new layout
+const _origOpenStockManager = openStockManager;
+window.openStockManager = function() {
+  renderStockManagerWithTabs();
+  document.getElementById('stockManagerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+const _origRenderStockManager = renderStockManager;
+window.renderStockManager = function() {
+  if (document.getElementById('panelStock')) {
+    renderStockPanel();
+    if (document.getElementById('panelHistory')) renderHistoryPanel();
+  } else {
+    _origRenderStockManager();
+  }
+};
+
+// ── COOKIE CONSENT ──
+const COOKIE_KEY = 'stuarts_cookie_consent';
+function initCookieBanner() {
+  const consent = localStorage.getItem(COOKIE_KEY);
+  // Only hide if explicitly accepted or declined — anything else shows the banner
+  if (consent !== 'accepted' && consent !== 'declined') {
+    localStorage.removeItem(COOKIE_KEY); // clear any malformed value
+    setTimeout(() => {
+      const banner = document.getElementById('cookieBanner');
+      if (banner) banner.classList.add('visible');
+    }, 800);
+  }
+}
+function dismissCookies(accepted) {
+  localStorage.setItem(COOKIE_KEY, accepted ? 'accepted' : 'declined');
+  const banner = document.getElementById('cookieBanner');
+  if (banner) banner.classList.remove('visible');
+}
+
+// ── TERMS MODAL ──
+function openTermsModal() {
+  document.getElementById('termsModalOverlay').classList.add('open');
+}
+function closeTermsModal() {
+  document.getElementById('termsModalOverlay').classList.remove('open');
+}
+
+// ── ORDER CONFIRMATION PAGE ──
+function showConfirmationPage(order, firstName) {
+  // Build a shareable URL using a hash so it works in a single HTML file
+  const shareUrl = window.location.href.split('#')[0] + '#order=' + order.orderNum;
+
+  // Persist this order so it can be recovered from the URL
+  try {
+    const key = 'stuarts_order_' + order.orderNum;
+    localStorage.setItem(key, JSON.stringify(order));
+  } catch(e) {}
+
+  const itemRows = order.items.map(i =>
+    `<tr><td>${i.name}</td><td style="text-align:center">${i.qty}</td><td>£${i.price.toFixed(2)}</td><td style="text-align:right">£${i.total.toFixed(2)}</td></tr>`
+  ).join('');
+
+  document.getElementById('confirmPageContent').innerHTML = `
+    <div class="confirm-page-header">
+      <h1>Order Confirmed</h1>
+      <p>Stuarts Premier Daily — Stowmarket</p>
+    </div>
+    <div class="confirm-page-body">
+      <div class="confirm-badge">✅</div>
+      <div class="confirm-order-num">#${order.orderNum}</div>
+      <p class="confirm-message">
+        Thank you, <strong>${firstName}</strong>! Your order is in. We'll call you on <strong>${order.phone}</strong> to confirm your delivery slot.<br>
+        Please have <strong>£${order.total.toFixed(2)}</strong> ready in cash when your order arrives.
+      </p>
+
+      <div class="confirm-section-title">Order Details</div>
+      <div class="confirm-detail-grid">
+        <div class="confirm-detail-item">
+          <span class="confirm-detail-label">Order Number</span>
+          <span class="confirm-detail-value">#${order.orderNum}</span>
+        </div>
+        <div class="confirm-detail-item">
+          <span class="confirm-detail-label">Date &amp; Time</span>
+          <span class="confirm-detail-value">${order.date}</span>
+        </div>
+        <div class="confirm-detail-item">
+          <span class="confirm-detail-label">Customer</span>
+          <span class="confirm-detail-value">${order.customer}</span>
+        </div>
+        <div class="confirm-detail-item">
+          <span class="confirm-detail-label">Phone</span>
+          <span class="confirm-detail-value">${order.phone}</span>
+        </div>
+        <div class="confirm-detail-item" style="grid-column:1/-1">
+          <span class="confirm-detail-label">Delivery Address</span>
+          <span class="confirm-detail-value">${order.address}</span>
+        </div>
+      </div>
+
+      <div class="confirm-section-title">Items</div>
+      <table class="confirm-items-table">
+        <thead><tr><th>Item</th><th style="text-align:center">Qty</th><th>Unit</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody>
+          ${itemRows}
+          <tr class="confirm-total-row">
+            <td colspan="3"><strong>Total (incl. VAT) — Cash on Delivery</strong></td>
+            <td style="text-align:right"><strong>£${order.total.toFixed(2)}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="confirm-share-bar">
+        <div class="confirm-share-title">🔗 Save or Share Your Order Link</div>
+        <div class="confirm-share-url">
+          <input class="confirm-share-input" id="confirmShareInput" type="text" value="${shareUrl}" readonly onclick="this.select()">
+          <button class="confirm-copy-btn" id="confirmCopyBtn" onclick="copyConfirmUrl()">Copy Link</button>
+        </div>
+      </div>
+
+      <div class="confirm-actions">
+        <button class="confirm-btn-secondary" onclick="downloadConfirmPDF('${order.orderNum}')">⬇️ Download PDF</button>
+        <button class="confirm-btn-primary" onclick="closeConfirmationPage()">🛍️ Continue Shopping</button>
+      </div>
+    </div>
+  `;
+
+  // Push order number into URL hash
+  history.pushState(null, '', '#order=' + order.orderNum);
+  document.getElementById('confirmPageOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeConfirmationPage() {
+  document.getElementById('confirmPageOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  // Clear the hash
+  history.pushState(null, '', window.location.pathname);
+}
+
+function copyConfirmUrl() {
+  const input = document.getElementById('confirmShareInput');
+  input.select();
+  try { navigator.clipboard.writeText(input.value); } catch(e) { document.execCommand('copy'); }
+  const btn = document.getElementById('confirmCopyBtn');
+  btn.textContent = '✓ Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy Link'; btn.classList.remove('copied'); }, 2500);
+}
+
+function downloadConfirmPDF(orderNum) {
+  const el = document.getElementById('confirmPageContent');
+  const btns = el.querySelector('.confirm-actions');
+  const shareBar = el.querySelector('.confirm-share-bar');
+  if (btns) btns.style.display = 'none';
+  if (shareBar) shareBar.style.display = 'none';
+
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: `stuarts-order-${orderNum}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#faf8fc' },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(el).save().then(() => {
+    if (btns) btns.style.display = '';
+    if (shareBar) shareBar.style.display = '';
+  });
+}
+
+// Restore order from URL hash on page load
+function checkOrderHash() {
+  const hash = window.location.hash;
+  const match = hash.match(/^#order=(SPD-\d+)$/);
+  if (!match) return;
+  const orderNum = match[1];
+  try {
+    const stored = localStorage.getItem('stuarts_order_' + orderNum);
+    if (!stored) return;
+    const order = JSON.parse(stored);
+    showConfirmationPage(order, order.customer.split(' ')[0]);
+  } catch(e) {}
+}
+
+// ── LIVE VALIDATION — clear errors as user corrects fields ──
+document.addEventListener('DOMContentLoaded', () => {
+  initCookieBanner();
+  checkOrderHash();
+
+  const liveFields = ['coFirst','coLast','coEmail','coPhone','coAddr1','coCity','coPost'];
+  liveFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      el.classList.remove('field-error');
+      const errEl = document.getElementById('err' + id.replace('co','').replace(/^\w/, c => c.toUpperCase()));
+      if (errEl) errEl.classList.remove('visible');
+    });
+  });
+});
+</script>
+</body>
+</html>
