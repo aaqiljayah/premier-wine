@@ -1295,6 +1295,68 @@
     .stat { min-width: 50%; }
     .hero { padding: 3.5rem 1.5rem 3rem; }
     .search-bar-wrap { padding: 0.8rem 1.2rem; }
+
+    /* ── FIX 1: Mobile menu — clear background, strong text, safe z-index ── */
+    .mobile-menu {
+      background: #35075A;
+      border-top: 3px solid var(--yellow);
+      z-index: 110;
+    }
+    .mobile-menu a {
+      color: #ffffff;
+      font-size: 1rem;
+      padding: 1rem 1.8rem;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      display: block;
+    }
+    .mobile-menu a.cta {
+      background: var(--yellow);
+      color: var(--purple-dark);
+      margin: 1rem 1.2rem 0.5rem;
+      border-radius: 6px;
+      border-bottom: none;
+      font-weight: 700;
+      text-align: center;
+      padding: 0.9rem 1rem;
+    }
+
+    /* ── FIX 2: Wine grid — horizontal scroll strip on mobile ── */
+    .wine-grid {
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      gap: 0;
+      background: var(--white);
+      border-radius: 4px;
+      padding-bottom: 0.5rem;
+    }
+    .wine-grid::-webkit-scrollbar {
+      height: 4px;
+    }
+    .wine-grid::-webkit-scrollbar-track {
+      background: var(--pale);
+    }
+    .wine-grid::-webkit-scrollbar-thumb {
+      background: var(--purple);
+      border-radius: 4px;
+    }
+    .wine-card {
+      flex: 0 0 68vw;
+      max-width: 260px;
+      min-width: 200px;
+      scroll-snap-align: start;
+      border-right: 1.5px solid var(--border);
+      border-bottom: none;
+    }
+    .wine-card:last-child {
+      border-right: none;
+    }
+    .wine-card-img {
+      height: 180px;
+    }
   }
   /* ── ADMIN MODE ── */
   .admin-only { display: none !important; }
